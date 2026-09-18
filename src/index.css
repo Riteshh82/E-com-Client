@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@300;400;500;600;700&display=swap");
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Copper palette */
+  --color-copper-50:  #FBF3EA;
+  --color-copper-100: #F3DFC7;
+  --color-copper-200: #E7C296;
+  --color-copper-300: #D9A268;
+  --color-copper-400: #C6853F;
+  --color-copper-500: #B8703E;
+  --color-copper-600: #9C5A2E;
+  --color-copper-700: #7C4624;
+  --color-copper-800: #5C3319;
+  --color-copper-900: #3D210F;
+
+  /* Charcoal */
+  --color-charcoal-950: #17140F;
+  --color-charcoal-900: #211D16;
+  --color-charcoal-800: #2C2620;
+  --color-charcoal-700: #3E362C;
+
+  /* Cream */
+  --color-cream-50:  #FBF8F2;
+  --color-cream-100: #F5EFE3;
+
+  /* Beige */
+  --color-beige-100: #EDE3D3;
+  --color-beige-200: #E2D3BB;
+
+  /* Stone */
+  --color-stone-400: #A39A8D;
+  --color-stone-500: #7A7168;
+  --color-stone-600: #5B534A;
+}
+
+/* ── Base ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream-50);
+  color: var(--color-charcoal-950);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background-color: var(--color-copper-300);
+  color: var(--color-charcoal-950);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-copper-400) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-copper-400);
+  border-radius: 99px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-copper-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Animations ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease both;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-toast-in {
+  animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes pulse-copper {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+.animate-pulse-copper {
+  animation: pulse-copper 2.5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger helpers */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+
+/* ── Copper utilities ── */
+.copper-underline {
+  background-image: linear-gradient(90deg, var(--color-copper-400), var(--color-copper-600));
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  transition: background-size 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copper-underline:hover {
+  background-size: 100% 2px;
+}
+
+.copper-gradient-text {
+  background: linear-gradient(135deg, var(--color-copper-400) 0%, var(--color-copper-600) 50%, var(--color-copper-300) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.copper-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--color-copper-600) 0%,
+    var(--color-copper-300) 30%,
+    var(--color-copper-600) 60%,
+    var(--color-copper-300) 90%,
+    var(--color-copper-600) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3.5s linear infinite;
+}
+
+.hero-gradient {
+  background: radial-gradient(
+    ellipse 80% 60% at 60% 40%,
+    rgba(199, 133, 63, 0.12) 0%,
+    transparent 70%
+  ),
+  radial-gradient(
+    ellipse 50% 40% at 10% 80%,
+    rgba(184, 112, 62, 0.08) 0%,
+    transparent 60%
+  ),
+  var(--color-cream-50);
+}
+
+.copper-glass {
+  background: rgba(251, 248, 242, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(199, 133, 63, 0.15);
+}
+
+.copper-card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.25s ease;
+}
+.copper-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 48px -12px rgba(23, 20, 15, 0.18),
+              0 0 0 1px rgba(184, 112, 62, 0.25);
+}
+
+.copper-glow {
+  box-shadow: 0 0 0 1px rgba(184, 112, 62, 0.3),
+              0 8px 32px -8px rgba(184, 112, 62, 0.4);
+}
+
+.surface-elevated {
+  background: #fff;
+  border: 1px solid rgba(23, 20, 15, 0.07);
+  box-shadow: 0 4px 16px -4px rgba(23, 20, 15, 0.08),
+              0 1px 4px -1px rgba(23, 20, 15, 0.04);
+}
+
+/* ── Section separators ── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-beige-200), transparent);
+}
+
+/* ── Dark section ── */
+.dark-section {
+  background: var(--color-charcoal-950);
+  position: relative;
+  overflow: hidden;
+}
+.dark-section::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(184, 112, 62, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Image effects ── */
+.img-hover-zoom {
+  overflow: hidden;
+}
+.img-hover-zoom img {
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.img-hover-zoom:hover img {
+  transform: scale(1.08);
+}
+
+/* ── Copper border gradient ── */
+.copper-border-gradient {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.copper-border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-copper-400), var(--color-copper-200), var(--color-copper-500));
+  z-index: -1;
+}
+
+/* ── Counter animation ── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up {
+  animation: count-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
