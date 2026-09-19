@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShieldCheck,
@@ -11,7 +12,7 @@ import {
 import { Button } from "../../components/ui/Button";
 import { ProductGrid } from "../../components/site/ProductCard";
 import { CategoryCard, BulkOrderCTA } from "../../components/site/Misc";
-import { products, categories } from "../../data/mockData";
+import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 
 const features = [
   {
@@ -53,7 +54,17 @@ const stats = [
 ];
 
 export default function Home() {
-  const featured = products.filter((p) => p.featured && p.status === "Published");
+  const [featured, setFeatured] = useState<ApiProduct[]>([]);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+
+  useEffect(() => {
+    apiGetProducts({ featured: "true", status: "Published" })
+      .then((r) => setFeatured(r.products))
+      .catch(() => {});
+    apiGetCategories()
+      .then(setCategories)
+      .catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -214,7 +225,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categories.slice(0, 3).map((c, i) => (
-              <div key={c.id} className={`animate-fade-up stagger-${i + 1}`}>
+              <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
                 <CategoryCard category={c} />
               </div>
             ))}
@@ -247,7 +258,7 @@ export default function Home() {
           {/* Text side */}
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
-              Why Coppera
+              Why Next Steel Innovation
             </span>
             <h2 className="mt-3 font-display text-4xl leading-tight text-charcoal-950 sm:text-5xl">
               Built for Spaces That

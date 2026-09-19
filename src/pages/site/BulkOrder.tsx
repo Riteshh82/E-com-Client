@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { CheckCircle2, UploadCloud, Building2, Users, Package, Palette } from "lucide-react";
 import { Input, Select, Textarea } from "../../components/ui/index";
 import { Button } from "../../components/ui/Button";
-import { products } from "../../data/mockData";
+import { apiGetProducts, apiSubmitBulkOrder, type ApiProduct } from "../../api";
 import { useToast } from "../../context/ToastContext";
 
 const benefits = [
@@ -34,12 +34,42 @@ export default function BulkOrder() {
   const preselected = (location.state as { product?: string } | null)?.product ?? "";
   const { showToast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [products, setProducts] = useState<ApiProduct[]>([]);
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    apiGetProducts({ status: "Published" })
+      .then((r) => setProducts(r.products))
+      .catch(() => {});
+  }, []);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
-    showToast("Your bulk inquiry has been received. We'll respond within 24 hours.");
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      customerName: String(fd.get("customerName") ?? ""),
+      company: String(fd.get("company") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      email: String(fd.get("email") ?? ""),
+      city: String(fd.get("city") ?? ""),
+      product: String(fd.get("product") ?? ""),
+      quantity: String(fd.get("quantity") ?? ""),
+      projectType: String(fd.get("projectType") ?? ""),
+      message: String(fd.get("message") ?? ""),
+    };
+
+    setSubmitting(true);
+    try {
+      await apiSubmitBulkOrder(payload);
+      setSubmitted(true);
+      showToast("Your bulk inquiry has been received. We'll respond within 24 hours.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Submission failed. Please try again.";
+      showToast(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,7 +79,7 @@ export default function BulkOrder() {
         <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 -translate-y-1/3 translate-x-1/4 rounded-full bg-copper-500/8 blur-[80px]" />
         <div className="mx-auto max-w-6xl px-6 py-20 lg:px-10">
           <span className="inline-flex items-center rounded-full border border-copper-400/30 bg-copper-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-copper-300">
-            B2B & Commercial
+            B2B &amp; Commercial
           </span>
           <h1 className="mt-5 font-display text-5xl leading-tight text-cream-50 sm:text-6xl">
             Request a
@@ -130,22 +160,22 @@ export default function BulkOrder() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <Input id="bulk-name" label="Full Name" placeholder="Jane Doe" required />
-                  <Input id="bulk-company" label="Company Name" placeholder="Studio / Firm name" />
-                  <Input id="bulk-phone" label="Phone Number" type="tel" placeholder="+91 98765 43210" required />
-                  <Input id="bulk-email" label="Email" type="email" placeholder="you@company.com" required />
-                  <Input id="bulk-city" label="City" placeholder="Mumbai" required />
-                  <Select id="bulk-product" label="Product" defaultValue={preselected}>
+                  <Input id="bulk-name" name="customerName" label="Full Name" placeholder="Jane Doe" required />
+                  <Input id="bulk-company" name="company" label="Company Name" placeholder="Studio / Firm name" />
+                  <Input id="bulk-phone" name="phone" label="Phone Number" type="tel" placeholder="+91 98765 43210" required />
+                  <Input id="bulk-email" name="email" label="Email" type="email" placeholder="you@company.com" required />
+                  <Input id="bulk-city" name="city" label="City" placeholder="Mumbai" required />
+                  <Select id="bulk-product" name="product" label="Product" defaultValue={preselected}>
                     <option value="">Select a product</option>
                     {products.map((p) => (
-                      <option key={p.id} value={p.name}>
+                      <option key={p._id} value={p.name}>
                         {p.name}
                       </option>
                     ))}
                     <option value="Other">Other / Not sure yet</option>
                   </Select>
-                  <Input id="bulk-quantity" label="Quantity Required" placeholder="e.g. 500 tiles / 2000 sq ft" required />
-                  <Select id="bulk-project-type" label="Project Type" defaultValue="">
+                  <Input id="bulk-quantity" name="quantity" label="Quantity Required" placeholder="e.g. 500 tiles / 2000 sq ft" required />
+                  <Select id="bulk-project-type" name="projectType" label="Project Type" defaultValue="">
                     <option value="">Select project type</option>
                     <option>Residential</option>
                     <option>Commercial</option>
@@ -156,9 +186,9 @@ export default function BulkOrder() {
                   </Select>
                 </div>
 
-                <Textarea id="bulk-message" label="Message" rows={4} placeholder="Tell us more about your project, timeline, or any special requirements…" />
+                <Textarea id="bulk-message" name="message" label="Message" rows={4} placeholder="Tell us more about your project, timeline, or any special requirements…" />
 
-                {/* File upload */}
+                {/* File upload — UI only, not sent to backend */}
                 <div>
                   <span className="mb-1.5 block text-sm font-medium text-charcoal-900">
                     Upload Requirement{" "}
@@ -189,8 +219,8 @@ export default function BulkOrder() {
                   </label>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
-                  Submit Inquiry
+                <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+                  {submitting ? "Submitting…" : "Submit Inquiry"}
                 </Button>
                 <p className="text-center text-xs text-stone-400">
                   We respond to all inquiries within one business day.

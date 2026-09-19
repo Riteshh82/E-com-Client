@@ -295,3 +295,30 @@ body {
 .animate-count-up {
   animation: count-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── WhatsApp Glow Animation ── */
+@keyframes whatsapp-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 24px rgba(37, 211, 102, 0);
+  }
+}
+.animate-whatsapp-pulse {
+  animation: whatsapp-pulse 2s infinite ease-out;
+}
+
+@keyframes whatsapp-halo-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+.animate-whatsapp-halo-pulse {
+  animation: whatsapp-halo-pulse 2s infinite ease-out;
+}

@@ -1,30 +1,47 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProductGrid } from "../../components/site/ProductCard";
-import { products, categories } from "../../data/mockData";
+import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 import { cn } from "../../lib/utils";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "all";
   const [query, setQuery] = useState("");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [products, setProducts] = useState<ApiProduct[]>([]);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    return products.filter((p) => {
-      if (p.status !== "Published") return false;
-      const matchesCategory =
-        activeCategory === "all" ||
-        categories.find((c) => c.slug === activeCategory)?.name === p.category;
-      const matchesQuery =
-        !query ||
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.category.toLowerCase().includes(query.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()));
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeCategory, query]);
+  // Load categories once
+  useEffect(() => {
+    apiGetCategories()
+      .then(setCategories)
+      .catch(() => {});
+  }, []);
+
+  // Reload products when category or query changes
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const params: Record<string, string> = { status: "Published" };
+    if (activeCategory !== "all") {
+      const cat = categories.find((c) => c.slug === activeCategory);
+      if (cat) params.category = cat.name;
+    }
+    if (query.trim()) params.q = query.trim();
+
+    apiGetProducts(params)
+      .then((r) => setProducts(r.products))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [activeCategory, query, categories]);
+
+  const activeCategoryName = useMemo(
+    () => categories.find((c) => c.slug === activeCategory)?.name,
+    [categories, activeCategory]
+  );
 
   return (
     <div>
@@ -97,34 +114,45 @@ export default function Products() {
         </div>
 
         {/* Result count */}
-        <div className="mb-8 flex items-center justify-between">
-          <p className="text-sm text-stone-500">
-            {filtered.length} product{filtered.length !== 1 ? "s" : ""}{" "}
-            {activeCategory !== "all" && (
-              <span>
-                in{" "}
-                <span className="font-medium text-charcoal-950">
-                  {categories.find((c) => c.slug === activeCategory)?.name}
+        {!loading && !error && (
+          <div className="mb-8 flex items-center justify-between">
+            <p className="text-sm text-stone-500">
+              {products.length} product{products.length !== 1 ? "s" : ""}{" "}
+              {activeCategory !== "all" && activeCategoryName && (
+                <span>
+                  in{" "}
+                  <span className="font-medium text-charcoal-950">{activeCategoryName}</span>
                 </span>
-              </span>
+              )}
+              {query && (
+                <span>
+                  {" "}matching <span className="font-medium text-charcoal-950">"{query}"</span>
+                </span>
+              )}
+            </p>
+            {(activeCategory !== "all" || query) && (
+              <button
+                onClick={() => { setSearchParams({}); setQuery(""); }}
+                className="flex items-center gap-1 text-xs text-stone-500 hover:text-copper-600"
+              >
+                <X className="h-3.5 w-3.5" /> Clear filters
+              </button>
             )}
-            {query && (
-              <span>
-                {" "}matching <span className="font-medium text-charcoal-950">"{query}"</span>
-              </span>
-            )}
-          </p>
-          {(activeCategory !== "all" || query) && (
-            <button
-              onClick={() => { setSearchParams({}); setQuery(""); }}
-              className="flex items-center gap-1 text-xs text-stone-500 hover:text-copper-600"
-            >
-              <X className="h-3.5 w-3.5" /> Clear filters
-            </button>
-          )}
-        </div>
+          </div>
+        )}
 
-        <ProductGrid products={filtered} />
+        {/* States */}
+        {loading && (
+          <div className="flex items-center justify-center py-32">
+            <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+          </div>
+        )}
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {!loading && !error && <ProductGrid products={products} />}
       </div>
     </div>
   );

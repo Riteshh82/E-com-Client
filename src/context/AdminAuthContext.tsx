@@ -13,14 +13,16 @@ const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 const STORAGE_KEY = "coppera_admin_session";
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [adminEmail, setAdminEmail] = useState<string | null>(() =>
-    localStorage.getItem(STORAGE_KEY)
-  );
+  const [adminEmail, setAdminEmail] = useState<string | null>(() => {
+    // Clear any stale old token key from before renaming
+    localStorage.removeItem("coppera_admin_token");
+    return localStorage.getItem(STORAGE_KEY);
+  });
 
   const login = async (email: string, password: string) => {
     try {
       const { token } = await apiLogin(email, password);
-      localStorage.setItem("coppera_admin_token", token);
+      localStorage.setItem("nsi_admin_token", token);
       localStorage.setItem(STORAGE_KEY, email);
       setAdminEmail(email);
       return true;
@@ -30,7 +32,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("coppera_admin_token");
+    localStorage.removeItem("nsi_admin_token");
     localStorage.removeItem(STORAGE_KEY);
     setAdminEmail(null);
   };

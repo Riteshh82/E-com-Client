@@ -1,8 +1,19 @@
+import { useEffect, useState } from "react";
 import { CategoryCard } from "../../components/site/Misc";
-import { categories } from "../../data/mockData";
-import { ArrowDownRight } from "lucide-react";
+import { apiGetCategories, type ApiCategory } from "../../api";
+import { ArrowDownRight, Loader2 } from "lucide-react";
 
 export default function Collections() {
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGetCategories()
+      .then(setCategories)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       {/* ── Hero ── */}
@@ -38,13 +49,19 @@ export default function Collections() {
 
       {/* ── Grid ── */}
       <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((c, i) => (
-            <div key={c.id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
-              <CategoryCard category={c} />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-32">
+            <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((c, i) => (
+              <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
+                <CategoryCard category={c} />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Bottom CTA ── */}

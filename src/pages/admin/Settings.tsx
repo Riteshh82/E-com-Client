@@ -1,9 +1,9 @@
-import { type FormEvent } from "react";
-import { companySettings } from "../../data/mockData";
+import { type FormEvent, useEffect, useState } from "react";
 import { Input } from "../../components/ui/index";
 import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
-import { Building2, Globe, ShoppingBag, MessageCircle, Upload, Save } from "lucide-react";
+import { Building2, Globe, ShoppingBag, MessageCircle, Upload, Save, Loader2 } from "lucide-react";
+import { apiGetSettings, apiUpdateSettings, type ApiSiteSettings } from "../../api";
 
 function SectionCard({
   icon: Icon,
@@ -34,11 +34,59 @@ function SectionCard({
 
 export default function Settings() {
   const { showToast } = useToast();
+  const [settings, setSettings] = useState<ApiSiteSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    apiGetSettings()
+      .then(setSettings)
+      .catch((err) => showToast(err.message, "error"))
+      .finally(() => setIsLoading(false));
+  }, [showToast]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    showToast("Settings saved successfully.");
+    if (!settings) return;
+    
+    setIsSaving(true);
+    const fd = new FormData(e.currentTarget);
+    const data: Partial<ApiSiteSettings> = {
+      name: fd.get("name") as string,
+      phone: fd.get("phone") as string,
+      email: fd.get("email") as string,
+      address: fd.get("address") as string,
+      instagram: fd.get("instagram") as string,
+      facebook: fd.get("facebook") as string,
+      linkedin: fd.get("linkedin") as string,
+      whatsapp: fd.get("whatsapp") as string,
+      amazonStoreUrl: fd.get("amazonStoreUrl") as string,
+      flipkartStoreUrl: fd.get("flipkartStoreUrl") as string,
+      notifyBulkOrders: fd.get("notifyBulkOrders") === "on",
+      notifyMessages: fd.get("notifyMessages") === "on",
+      notifyWeeklySummary: fd.get("notifyWeeklySummary") === "on",
+    };
+
+    try {
+      const updated = await apiUpdateSettings(data);
+      setSettings(updated);
+      showToast("Settings saved successfully.");
+    } catch (err: any) {
+      showToast(err.message || "Failed to save settings", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+      </div>
+    );
+  }
+
+  if (!settings) return null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -63,7 +111,7 @@ export default function Settings() {
               <span className="mb-2 block text-sm font-medium text-charcoal-900">Logo</span>
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-charcoal-950 font-display text-2xl text-copper-300">
-                  {companySettings.logoInitial}
+                  {settings.logoInitial}
                 </div>
                 <div>
                   <Button type="button" variant="outline" size="sm" className="flex items-center gap-1.5">
@@ -76,28 +124,19 @@ export default function Settings() {
             </div>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Input name="name" label="Company Name" defaultValue={settings.name} />
+              <Input name="phone" label="Phone" type="tel" defaultValue={settings.phone} />
               <Input
-                id="company-name"
-                label="Company Name"
-                defaultValue={companySettings.name}
-              />
-              <Input
-                id="company-phone"
-                label="Phone"
-                type="tel"
-                defaultValue={companySettings.phone}
-              />
-              <Input
-                id="company-email"
+                name="email"
                 label="Email"
                 type="email"
-                defaultValue={companySettings.email}
+                defaultValue={settings.email}
                 className="sm:col-span-2"
               />
               <Input
-                id="company-address"
+                name="address"
                 label="Business Address"
-                defaultValue={companySettings.address}
+                defaultValue={settings.address}
                 className="sm:col-span-2"
               />
             </div>
@@ -111,10 +150,10 @@ export default function Settings() {
           description="Links used in footer and contact pages"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input id="s-instagram" label="Instagram URL" defaultValue={companySettings.instagram} />
-            <Input id="s-facebook" label="Facebook URL" defaultValue={companySettings.facebook} />
-            <Input id="s-linkedin" label="LinkedIn URL" defaultValue={companySettings.linkedin} />
-            <Input id="s-whatsapp" label="WhatsApp Link" defaultValue={companySettings.whatsapp} />
+            <Input name="instagram" label="Instagram URL" defaultValue={settings.instagram} />
+            <Input name="facebook" label="Facebook URL" defaultValue={settings.facebook} />
+            <Input name="linkedin" label="LinkedIn URL" defaultValue={settings.linkedin} />
+            <Input name="whatsapp" label="WhatsApp Link" defaultValue={settings.whatsapp} />
           </div>
         </SectionCard>
 
@@ -125,16 +164,8 @@ export default function Settings() {
           description="Your Amazon and Flipkart store pages"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input
-              id="s-amazon"
-              label="Amazon Store URL"
-              defaultValue={companySettings.amazonStoreUrl}
-            />
-            <Input
-              id="s-flipkart"
-              label="Flipkart Store URL"
-              defaultValue={companySettings.flipkartStoreUrl}
-            />
+            <Input name="amazonStoreUrl" label="Amazon Store URL" defaultValue={settings.amazonStoreUrl} />
+            <Input name="flipkartStoreUrl" label="Flipkart Store URL" defaultValue={settings.flipkartStoreUrl} />
           </div>
         </SectionCard>
 
@@ -145,32 +176,51 @@ export default function Settings() {
           description="Choose what to be notified about"
         >
           <div className="space-y-4">
-            {[
-              { label: "New bulk order inquiries", desc: "Get notified when a new B2B inquiry is submitted" },
-              { label: "New contact messages", desc: "Get notified for every new contact form submission" },
-              { label: "Weekly summary", desc: "Receive a weekly digest of orders and messages" },
-            ].map((item, i) => (
-              <label key={item.label} className="flex cursor-pointer items-start gap-3">
-                <input
-                  type="checkbox"
-                  defaultChecked={i < 2}
-                  className="mt-0.5 h-4 w-4 accent-copper-500"
-                />
-                <div>
-                  <p className="text-sm font-medium text-charcoal-950">{item.label}</p>
-                  <p className="text-xs text-stone-400">{item.desc}</p>
-                </div>
-              </label>
-            ))}
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="notifyBulkOrders"
+                defaultChecked={settings.notifyBulkOrders}
+                className="mt-0.5 h-4 w-4 accent-copper-500"
+              />
+              <div>
+                <p className="text-sm font-medium text-charcoal-950">New bulk order inquiries</p>
+                <p className="text-xs text-stone-400">Get notified when a new B2B inquiry is submitted</p>
+              </div>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="notifyMessages"
+                defaultChecked={settings.notifyMessages}
+                className="mt-0.5 h-4 w-4 accent-copper-500"
+              />
+              <div>
+                <p className="text-sm font-medium text-charcoal-950">New contact messages</p>
+                <p className="text-xs text-stone-400">Get notified for every new contact form submission</p>
+              </div>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="notifyWeeklySummary"
+                defaultChecked={settings.notifyWeeklySummary}
+                className="mt-0.5 h-4 w-4 accent-copper-500"
+              />
+              <div>
+                <p className="text-sm font-medium text-charcoal-950">Weekly summary</p>
+                <p className="text-xs text-stone-400">Receive a weekly digest of orders and messages</p>
+              </div>
+            </label>
           </div>
         </SectionCard>
 
         {/* Save */}
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="ghost">Discard Changes</Button>
-          <Button type="submit" className="flex items-center gap-1.5">
-            <Save className="h-4 w-4" />
-            Save Changes
+          <Button type="button" variant="ghost" onClick={() => window.location.reload()}>Discard Changes</Button>
+          <Button type="submit" disabled={isSaving} className="flex items-center gap-1.5">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>

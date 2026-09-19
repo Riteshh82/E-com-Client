@@ -36,10 +36,8 @@ export default function AdminLogin() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-copper-500 font-display text-lg text-charcoal-950">
-            C
-          </span>
-          <span className="font-display text-2xl tracking-wide text-cream-50">COPPERA</span>
+          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-11 w-11 rounded-full object-cover" />
+          <span className="font-display text-2xl tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
         </div>
 
         {/* Center content */}
@@ -91,12 +89,12 @@ export default function AdminLogin() {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-charcoal-950 font-display text-base text-copper-300">
             C
           </span>
-          <span className="font-display text-xl tracking-wide text-charcoal-950">COPPERA</span>
+          <span className="font-display text-xl tracking-wide text-charcoal-950">NEXT STEEL INNOVATION</span>
         </div>
 
         <div className="w-full max-w-sm">
           <h2 className="font-display text-3xl text-charcoal-950">Welcome back</h2>
-          <p className="mt-1.5 text-sm text-stone-500">Sign in to the Coppera admin panel.</p>
+          <p className="mt-1.5 text-sm text-stone-500">Sign in to Next Steel Innovation admin panel.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             {/* Email */}

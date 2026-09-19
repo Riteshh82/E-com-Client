@@ -1,11 +1,12 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { products } from "../../data/mockData";
+import { apiGetProduct, apiGetProducts, type ApiProduct } from "../../api";
 import { ProductGallery } from "../../components/site/Misc";
 import { Badge } from "../../components/ui/index";
 import { MarketplaceButtons } from "../../components/site/MarketplaceButtons";
 import { Button } from "../../components/ui/Button";
 import { ProductGrid } from "../../components/site/ProductCard";
-import { ChevronRight, CheckCircle2, Package, ArrowRight } from "lucide-react";
+import { ChevronRight, CheckCircle2, Package, ArrowRight, Loader2 } from "lucide-react";
 
 const specLabels: Record<string, string> = {
   material: "Material",
@@ -15,11 +16,50 @@ const specLabels: Record<string, string> = {
   color: "Color",
 };
 
-export default function ProductDetail() {
-  const { slug } = useParams();
-  const product = products.find((p) => p.slug === slug);
+/** Returns true if value is non-empty (string, array, number) */
+function hasValue(v: unknown): boolean {
+  if (v == null) return false;
+  if (typeof v === "string") return v.trim().length > 0;
+  if (Array.isArray(v)) return v.length > 0 && v.some((x) => String(x).trim().length > 0);
+  if (typeof v === "number") return v > 0;
+  return false;
+}
 
-  if (!product) {
+export default function ProductDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const [product, setProduct] = useState<ApiProduct | null>(null);
+  const [related, setRelated] = useState<ApiProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    setNotFound(false);
+    setProduct(null);
+    setRelated([]);
+
+    apiGetProduct(slug)
+      .then((p) => {
+        setProduct(p);
+        // Load related products from same category
+        return apiGetProducts({ category: p.category, status: "Published" }).then((r) =>
+          setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4))
+        );
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-48">
+        <Loader2 className="h-10 w-10 animate-spin text-copper-500" />
+      </div>
+    );
+  }
+
+  if (notFound || !product) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-32 text-center">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-copper-50 text-copper-400">
@@ -34,11 +74,12 @@ export default function ProductDetail() {
     );
   }
 
-  const related = products
-    .filter((p) => p.category === product.category && p.id !== product.id && p.status === "Published")
-    .slice(0, 4);
-
-  const specs = Object.entries(product.specifications).filter(([k]) => k !== "applications");
+  // Conditional specs — only show rows with actual values
+  const specRows = Object.entries(specLabels).filter(([key]) =>
+    hasValue(product.specifications[key as keyof typeof product.specifications])
+  );
+  const hasApplications = hasValue(product.specifications.applications);
+  const hasAnySpec = specRows.length > 0 || hasApplications;
 
   return (
     <div className="bg-cream-50">
@@ -81,6 +122,20 @@ export default function ProductDetail() {
               {product.name}
             </h1>
 
+            {/* Price & Product Code */}
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              {product.price > 0 && (
+                <span className="font-display text-3xl font-semibold text-copper-600">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+              )}
+              {product.productCode && (
+                <span className="rounded-full border border-charcoal-950/10 bg-beige-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Code: {product.productCode}
+                </span>
+              )}
+            </div>
+
             <p className="mt-5 text-base leading-relaxed text-stone-600">
               {product.fullDescription}
             </p>
@@ -93,58 +148,64 @@ export default function ProductDetail() {
             </div>
 
             {/* Available finishes */}
-            <div className="mt-7">
-              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
-                Available Finishes
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {product.finishes.map((f, i) => (
-                  <button
-                    key={f}
-                    className={`rounded-full border px-4 py-2 text-sm transition-all ${
-                      i === 0
-                        ? "border-copper-500 bg-copper-500 text-white"
-                        : "border-charcoal-950/15 text-charcoal-950 hover:border-copper-400"
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Specs table */}
-            <div className="mt-8 overflow-hidden rounded-2xl border border-charcoal-950/8">
-              <div className="bg-beige-100/60 px-5 py-3.5 border-b border-charcoal-950/8">
+            {product.finishes.length > 0 && (
+              <div className="mt-7">
                 <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Specifications
+                  Available Finishes
                 </p>
-              </div>
-              <table className="w-full text-sm">
-                <tbody>
-                  {specs.map(([key, value], i) => (
-                    <tr key={key} className={i % 2 === 0 ? "bg-white" : "bg-beige-100/30"}>
-                      <td className="w-2/5 px-5 py-3 font-medium text-charcoal-800">
-                        {specLabels[key] ?? key}
-                      </td>
-                      <td className="px-5 py-3 text-stone-600">{String(value)}</td>
-                    </tr>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {product.finishes.map((f, i) => (
+                    <button
+                      key={f}
+                      className={`rounded-full border px-4 py-2 text-sm transition-all ${
+                        i === 0
+                          ? "border-copper-500 bg-copper-500 text-white"
+                          : "border-charcoal-950/15 text-charcoal-950 hover:border-copper-400"
+                      }`}
+                    >
+                      {f}
+                    </button>
                   ))}
-                  <tr className="bg-white">
-                    <td className="w-2/5 px-5 py-3 font-medium text-charcoal-800">Applications</td>
-                    <td className="px-5 py-3">
-                      <div className="flex flex-wrap gap-1.5">
-                        {product.specifications.applications.map((a) => (
-                          <span key={a} className="flex items-center gap-1 text-xs text-stone-600">
-                            <CheckCircle2 className="h-3 w-3 text-copper-500" /> {a}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </div>
+            )}
+
+            {/* Specs table — only shown when at least one spec has a value */}
+            {hasAnySpec && (
+              <div className="mt-8 overflow-hidden rounded-2xl border border-charcoal-950/8">
+                <div className="bg-beige-100/60 px-5 py-3.5 border-b border-charcoal-950/8">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                    Specifications
+                  </p>
+                </div>
+                <table className="w-full text-sm">
+                  <tbody>
+                    {specRows.map(([key, label], i) => (
+                      <tr key={key} className={i % 2 === 0 ? "bg-white" : "bg-beige-100/30"}>
+                        <td className="w-2/5 px-5 py-3 font-medium text-charcoal-800">{label}</td>
+                        <td className="px-5 py-3 text-stone-600">
+                          {String(product.specifications[key as keyof typeof product.specifications])}
+                        </td>
+                      </tr>
+                    ))}
+                    {hasApplications && (
+                      <tr className={specRows.length % 2 === 0 ? "bg-white" : "bg-beige-100/30"}>
+                        <td className="w-2/5 px-5 py-3 font-medium text-charcoal-800">Applications</td>
+                        <td className="px-5 py-3">
+                          <div className="flex flex-wrap gap-1.5">
+                            {product.specifications.applications.filter((a) => a.trim()).map((a) => (
+                              <span key={a} className="flex items-center gap-1 text-xs text-stone-600">
+                                <CheckCircle2 className="h-3 w-3 text-copper-500" /> {a}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Buy online */}
             <div className="mt-9 border-t border-charcoal-950/8 pt-8">

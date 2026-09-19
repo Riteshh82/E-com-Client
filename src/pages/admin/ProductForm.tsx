@@ -1,44 +1,135 @@
-import { useState, type DragEvent, type FormEvent } from "react";
+import { useState, useEffect, type DragEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { UploadCloud, Star, X } from "lucide-react";
+import { UploadCloud, Star, X, Loader2 } from "lucide-react";
 import { Input, Select, Textarea } from "../../components/ui/index";
 import { Button } from "../../components/ui/Button";
-import { products, categories } from "../../data/mockData";
+import {
+  apiGetProducts,
+  apiGetCategories,
+  apiCreateProduct,
+  apiUpdateProduct,
+  type ApiProduct,
+  type ApiCategory,
+} from "../../api";
 import { slugify } from "../../lib/utils";
 import { useToast } from "../../context/ToastContext";
 
 export default function ProductForm() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
-  const existing = isEdit ? products.find((p) => p.id === id) : undefined;
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [name, setName] = useState(existing?.name ?? "");
-  const [images, setImages] = useState<string[]>(existing?.images ?? []);
-  const [dragActive, setDragActive] = useState(false);
-  const [featured, setFeatured] = useState(existing?.featured ?? false);
-  const [bulkAvailable, setBulkAvailable] = useState(existing?.bulkAvailable ?? true);
-  const [published, setPublished] = useState((existing?.status ?? "Published") === "Published");
+  const [existing, setExisting] = useState<ApiProduct | null>(null);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loadingData, setLoadingData] = useState(isEdit);
+  const [submitting, setSubmitting] = useState(false);
 
-  const addMockImage = () => {
-    setImages((prev) => [
-      ...prev,
-      `https://images.unsplash.com/photo-1622467827417-bec7da96f1ba?auto=format&fit=crop&w=800&q=80&sig=${prev.length}`,
-    ]);
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [productCode, setProductCode] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUrl, setImageUrl] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const [featured, setFeatured] = useState(false);
+  const [bulkAvailable, setBulkAvailable] = useState(true);
+  const [published, setPublished] = useState(true);
+
+  useEffect(() => {
+    // Always load categories
+    apiGetCategories().then(setCategories).catch(() => {});
+
+    if (!isEdit || !id) { setLoadingData(false); return; }
+
+    // Fetch the product being edited (by _id via listing with limit)
+    // We query the full list and find by ID since there's no GET /products/:id endpoint
+    apiGetProducts({ limit: "200" })
+      .then((r) => {
+        const p = r.products.find((x) => x._id === id);
+        if (!p) { navigate("/admin/products"); return; }
+        setExisting(p);
+        setName(p.name);
+        setPrice(p.price != null ? String(p.price) : "");
+        setProductCode(p.productCode ?? "");
+        setImages(p.images ?? []);
+        setFeatured(p.featured);
+        setBulkAvailable(p.bulkAvailable);
+        setPublished(p.status === "Published");
+      })
+      .catch(() => navigate("/admin/products"))
+      .finally(() => setLoadingData(false));
+  }, [id, isEdit, navigate]);
+
+  const addImageUrl = () => {
+    const url = imageUrl.trim();
+    if (url) { setImages((prev) => [...prev, url]); setImageUrl(""); }
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
-    addMockImage();
+    // In production, handle file upload here; for now accept dropped URL text
+    const text = e.dataTransfer.getData("text/plain");
+    if (text.startsWith("http")) setImages((prev) => [...prev, text]);
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    showToast(isEdit ? "Product updated." : "Product created.");
-    navigate("/admin/products");
+    const fd = new FormData(e.currentTarget);
+
+    const applicationsRaw = String(fd.get("applications") ?? "");
+    const finishesRaw = String(fd.get("finishes") ?? "");
+
+    const payload: Partial<ApiProduct> = {
+      name: String(fd.get("name") ?? ""),
+      slug: slugify(String(fd.get("name") ?? "")),
+      category: String(fd.get("category") ?? ""),
+      shortDescription: String(fd.get("shortDescription") ?? ""),
+      fullDescription: String(fd.get("fullDescription") ?? ""),
+      price: parseFloat(String(fd.get("price") ?? "0")) || 0,
+      productCode: String(fd.get("productCode") ?? "").trim(),
+      images,
+      specifications: {
+        material: String(fd.get("material") ?? ""),
+        finish: String(fd.get("specFinish") ?? ""),
+        dimensions: String(fd.get("dimensions") ?? ""),
+        weight: String(fd.get("weight") ?? ""),
+        color: String(fd.get("color") ?? ""),
+        applications: applicationsRaw.split(",").map((s) => s.trim()).filter(Boolean),
+      },
+      finishes: finishesRaw.split(",").map((s) => s.trim()).filter(Boolean),
+      amazonUrl: String(fd.get("amazonUrl") ?? ""),
+      flipkartUrl: String(fd.get("flipkartUrl") ?? ""),
+      featured,
+      bulkAvailable,
+      status: published ? "Published" : "Draft",
+    };
+
+    setSubmitting(true);
+    try {
+      if (isEdit && existing) {
+        await apiUpdateProduct(existing._id, payload);
+        showToast("Product updated.");
+      } else {
+        await apiCreateProduct(payload);
+        showToast("Product created.");
+      }
+      navigate("/admin/products");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Save failed.";
+      showToast(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -57,22 +148,41 @@ export default function ProductForm() {
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Input
               label="Product Name"
+              name="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Classic Copper Tile"
               required
             />
             <Input label="Slug" value={slugify(name || "")} readOnly placeholder="auto-generated" />
-            <Select label="Category" defaultValue={existing?.category ?? ""} required>
+            <Select label="Category" name="category" defaultValue={existing?.category ?? ""} required>
               <option value="">Select category</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.name}>{c.name}</option>
+                <option key={c._id} value={c.name}>{c.name}</option>
               ))}
             </Select>
             <div />
+            <Input
+              label="Price (₹)"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="e.g. 1999"
+            />
+            <Input
+              label="Product Code"
+              name="productCode"
+              value={productCode}
+              onChange={(e) => setProductCode(e.target.value)}
+              placeholder="e.g. NSI-CU-001"
+            />
             <div className="sm:col-span-2">
               <Textarea
                 label="Short Description"
+                name="shortDescription"
                 defaultValue={existing?.shortDescription}
                 rows={2}
                 placeholder="One or two lines shown on product cards"
@@ -81,6 +191,7 @@ export default function ProductForm() {
             <div className="sm:col-span-2">
               <Textarea
                 label="Full Description"
+                name="fullDescription"
                 defaultValue={existing?.fullDescription}
                 rows={5}
                 placeholder="Detailed description shown on the product page"
@@ -100,9 +211,18 @@ export default function ProductForm() {
             }`}
           >
             <UploadCloud className="h-7 w-7 text-stone-400" />
-            <p className="text-sm text-stone-500">Drag and drop images here, or</p>
-            <Button type="button" variant="outline" size="sm" onClick={addMockImage}>
-              Browse Files
+            <p className="text-sm text-stone-500">Add an image URL below</p>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://images.example.com/photo.jpg"
+              className="flex-1 rounded-lg border border-charcoal-950/12 px-3 py-2 text-sm outline-none focus:border-copper-500"
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addImageUrl(); } }}
+            />
+            <Button type="button" variant="outline" size="sm" onClick={addImageUrl}>
+              Add
             </Button>
           </div>
           {images.length > 0 && (
@@ -132,13 +252,14 @@ export default function ProductForm() {
         <section className="rounded-2xl border border-charcoal-950/8 bg-white p-6">
           <h2 className="font-display text-lg text-charcoal-950">Specifications</h2>
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input label="Material" defaultValue={existing?.specifications.material} placeholder="99.9% Pure Copper" />
-            <Input label="Finish" defaultValue={existing?.specifications.finish} placeholder="Polished Smooth" />
-            <Input label="Dimensions" defaultValue={existing?.specifications.dimensions} placeholder="150mm x 150mm x 1.2mm" />
-            <Input label="Weight" defaultValue={existing?.specifications.weight} placeholder="0.24 kg / tile" />
-            <Input label="Color" defaultValue={existing?.specifications.color} placeholder="Natural Copper" />
+            <Input name="material" label="Material" defaultValue={existing?.specifications.material} placeholder="99.9% Pure Copper" />
+            <Input name="specFinish" label="Finish" defaultValue={existing?.specifications.finish} placeholder="Polished Smooth" />
+            <Input name="dimensions" label="Dimensions" defaultValue={existing?.specifications.dimensions} placeholder="150mm x 150mm x 1.2mm" />
+            <Input name="weight" label="Weight" defaultValue={existing?.specifications.weight} placeholder="0.24 kg / tile" />
+            <Input name="color" label="Color" defaultValue={existing?.specifications.color} placeholder="Natural Copper" />
             <Input
-              label="Applications"
+              name="applications"
+              label="Applications (comma-separated)"
               defaultValue={existing?.specifications.applications.join(", ")}
               placeholder="Kitchen Backsplash, Feature Walls"
             />
@@ -146,10 +267,17 @@ export default function ProductForm() {
         </section>
 
         <section className="rounded-2xl border border-charcoal-950/8 bg-white p-6">
-          <h2 className="font-display text-lg text-charcoal-950">Marketplace Links</h2>
+          <h2 className="font-display text-lg text-charcoal-950">Finishes & Marketplace Links</h2>
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input label="Amazon URL" type="url" defaultValue={existing?.amazonUrl} placeholder="https://www.amazon.in/…" />
-            <Input label="Flipkart URL" type="url" defaultValue={existing?.flipkartUrl} placeholder="https://www.flipkart.com/…" />
+            <Input
+              name="finishes"
+              label="Available Finishes (comma-separated)"
+              defaultValue={existing?.finishes.join(", ")}
+              placeholder="Polished, Satin, Matte"
+              className="sm:col-span-2"
+            />
+            <Input name="amazonUrl" label="Amazon URL" type="url" defaultValue={existing?.amazonUrl} placeholder="https://www.amazon.in/…" />
+            <Input name="flipkartUrl" label="Flipkart URL" type="url" defaultValue={existing?.flipkartUrl} placeholder="https://www.flipkart.com/…" />
           </div>
         </section>
 
@@ -183,7 +311,9 @@ export default function ProductForm() {
           <Button type="button" variant="ghost" onClick={() => navigate("/admin/products")}>
             Cancel
           </Button>
-          <Button type="submit">Save Product</Button>
+          <Button type="submit" disabled={submitting}>
+            {submitting ? "Saving…" : "Save Product"}
+          </Button>
         </div>
       </form>
     </div>

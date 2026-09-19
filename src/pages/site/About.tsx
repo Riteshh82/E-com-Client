@@ -73,7 +73,7 @@ export default function About() {
             Our Story
           </span>
           <h1 className="mt-5 font-display text-5xl leading-tight text-cream-50 sm:text-6xl lg:text-7xl">
-            About Coppera
+            About Next Steel Innovation
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-300">
             We design and produce copper tiles and architectural surfaces for spaces that are
@@ -104,7 +104,7 @@ export default function About() {
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">Who We Are</span>
             <h2 className="mt-3 font-display text-4xl text-charcoal-950">Our Story</h2>
             <p className="mt-5 leading-relaxed text-stone-600">
-              Coppera began with a simple observation: copper, one of the oldest materials used by
+              Next Steel Innovation began with a simple observation: copper, one of the oldest materials used by
               architects and craftspeople, was rarely available in a form that felt considered rather
               than decorative. We set out to change that — building a focused range of copper tiles,
               panels and surfaces engineered for how modern interiors are actually designed and built.

@@ -1,6 +1,17 @@
 import { Link } from "react-router-dom";
-import { companySettings } from "../../data/mockData";
 import { Mail, Phone, MapPin } from "lucide-react";
+
+// Company settings — update when backend Settings API is available
+const COMPANY = {
+  name: "COPPERA",
+  phone: "+91 98765 43210",
+  email: "hello@coppera.in",
+  instagram: "https://instagram.com/coppera",
+  facebook: "https://facebook.com/coppera",
+  linkedin: "https://linkedin.com/company/coppera",
+  amazonStoreUrl: "https://www.amazon.in/s?k=coppera",
+  flipkartStoreUrl: "https://www.flipkart.com/search?q=coppera",
+};
 
 function InstagramIcon() {
   return (
@@ -57,8 +68,8 @@ const columns = [
 ];
 
 const contactItems = [
-  { icon: Phone, value: companySettings.phone },
-  { icon: Mail, value: companySettings.email },
+  { icon: Phone, value: COMPANY.phone },
+  { icon: Mail, value: COMPANY.email },
   { icon: MapPin, value: "Lower Parel, Mumbai" },
 ];
 
@@ -75,18 +86,14 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           {/* Brand column */}
           <div className="col-span-2">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-copper-500 font-display text-base text-charcoal-950">
-                C
-              </span>
-              <span className="font-display text-xl tracking-wide text-cream-50">
-                {companySettings.name}
-              </span>
-            </div>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-400">
-              Premium copper tiles and architectural surfaces. Crafted for spaces
-              that are built to be noticed.
-            </p>
+          <Link to="/" className="group inline-flex items-center gap-2.5">
+            <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-10 w-16 object-cover transition-transform duration-300 group-hover:scale-105" />
+            <span className="font-display text-2xl tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
+          </Link>
+          <p className="mt-6 max-w-sm text-sm leading-relaxed text-charcoal-400">
+            Premium architectural surfaces crafted for modern interiors.
+            Elevating spaces with timeless design and unmatched quality.
+          </p>
 
             {/* Contact items */}
             <div className="mt-6 space-y-2.5">
@@ -101,9 +108,9 @@ export function Footer() {
             {/* Social icons */}
             <div className="mt-6 flex gap-2.5">
               {[
-                { icon: InstagramIcon, href: companySettings.instagram, label: "Instagram" },
-                { icon: FacebookIcon, href: companySettings.facebook, label: "Facebook" },
-                { icon: LinkedinIcon, href: companySettings.linkedin, label: "LinkedIn" },
+                { icon: InstagramIcon, href: COMPANY.instagram, label: "Instagram" },
+                { icon: FacebookIcon, href: COMPANY.facebook, label: "Facebook" },
+                { icon: LinkedinIcon, href: COMPANY.linkedin, label: "LinkedIn" },
               ].map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
@@ -144,7 +151,7 @@ export function Footer() {
             <ul className="mt-4 space-y-3">
               <li>
                 <a
-                  href={companySettings.amazonStoreUrl}
+                  href={COMPANY.amazonStoreUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm text-stone-500 transition-colors hover:text-[#FF9900]"
@@ -154,7 +161,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href={companySettings.flipkartStoreUrl}
+                  href={COMPANY.flipkartStoreUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm text-stone-500 transition-colors hover:text-[#2874F0]"
@@ -168,7 +175,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-14 flex flex-col gap-3 border-t border-cream-50/8 pt-6 text-xs text-stone-600 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 {companySettings.name}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Next Steel Innovation. All rights reserved.</p>
           <p>Products sold via Amazon & Flipkart. Bulk orders handled directly.</p>
         </div>
       </div>

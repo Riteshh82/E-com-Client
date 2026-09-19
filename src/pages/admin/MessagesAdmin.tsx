@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { contactMessages as initialMessages, type ContactMessage, type MessageStatus } from "../../data/mockData";
+import { useEffect, useState } from "react";
+import {
+  apiGetMessages,
+  apiUpdateMessage,
+  type ApiContactMessage,
+  type MessageStatus,
+} from "../../api";
 import { Badge } from "../../components/ui/index";
 import { Drawer } from "../../components/ui/Overlay";
 import { formatDate } from "../../lib/utils";
-import { Mail, Phone, Reply, Eye, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, Reply, Eye, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { useToast } from "../../context/ToastContext";
 
@@ -14,23 +19,38 @@ const statusVariant: Record<MessageStatus, "copper" | "success" | "neutral"> = {
 };
 
 export default function MessagesAdmin() {
-  const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
-  const [selected, setSelected] = useState<ContactMessage | null>(null);
+  const [messages, setMessages] = useState<ApiContactMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<ApiContactMessage | null>(null);
   const { showToast } = useToast();
 
-  const open = (m: ContactMessage) => {
+  useEffect(() => {
+    apiGetMessages({ limit: "200" })
+      .then((r) => setMessages(r.messages))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const updateStatus = async (id: string, status: MessageStatus) => {
+    try {
+      const updated = await apiUpdateMessage(id, status);
+      setMessages((prev) => prev.map((m) => (m._id === id ? updated : m)));
+      setSelected((prev) => (prev && prev._id === id ? updated : prev));
+    } catch {
+      // Silent fail — don't block UI
+    }
+  };
+
+  const open = (m: ApiContactMessage) => {
     setSelected(m);
     if (m.status === "Unread") {
-      setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "Read" } : x)));
+      updateStatus(m._id, "Read");
     }
   };
 
   const markReplied = () => {
     if (!selected) return;
-    setMessages((prev) =>
-      prev.map((x) => (x.id === selected.id ? { ...x, status: "Replied" } : x))
-    );
-    setSelected((prev) => (prev ? { ...prev, status: "Replied" } : prev));
+    updateStatus(selected._id, "Replied");
     showToast("Message marked as replied.");
   };
 
@@ -54,56 +74,70 @@ export default function MessagesAdmin() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-charcoal-950/8 bg-white">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-charcoal-950/8 bg-beige-100/40 text-xs uppercase tracking-wide text-stone-500">
-            <tr>
-              <th className="px-5 py-3.5 font-medium">Name</th>
-              <th className="px-5 py-3.5 font-medium">Email</th>
-              <th className="px-5 py-3.5 font-medium">Phone</th>
-              <th className="px-5 py-3.5 font-medium">Subject</th>
-              <th className="px-5 py-3.5 font-medium">Date</th>
-              <th className="px-5 py-3.5 font-medium">Status</th>
-              <th className="px-5 py-3.5 font-medium text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-charcoal-950/6">
-            {messages.map((m) => (
-              <tr
-                key={m.id}
-                className={`cursor-pointer transition-colors hover:bg-beige-100/40 ${
-                  m.status === "Unread" ? "font-medium" : ""
-                }`}
-                onClick={() => open(m)}
-              >
-                <td className="px-5 py-3.5 text-charcoal-950">
-                  <div className="flex items-center gap-2">
-                    {m.status === "Unread" && (
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-copper-500" />
-                    )}
-                    {m.name}
-                  </div>
-                </td>
-                <td className="px-5 py-3.5 text-stone-600">{m.email}</td>
-                <td className="px-5 py-3.5 text-stone-600">{m.phone}</td>
-                <td className="px-5 py-3.5 text-stone-700">{m.subject}</td>
-                <td className="px-5 py-3.5 text-stone-500 text-xs">{formatDate(m.date)}</td>
-                <td className="px-5 py-3.5">
-                  <Badge variant={statusVariant[m.status]}>{m.status}</Badge>
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); open(m); }}
-                    className="rounded-lg p-1.5 text-stone-400 hover:bg-beige-100 hover:text-charcoal-950"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </button>
-                </td>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-charcoal-950/8 bg-white">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="border-b border-charcoal-950/8 bg-beige-100/40 text-xs uppercase tracking-wide text-stone-500">
+              <tr>
+                <th className="px-5 py-3.5 font-medium">Name</th>
+                <th className="px-5 py-3.5 font-medium">Email</th>
+                <th className="px-5 py-3.5 font-medium">Phone</th>
+                <th className="px-5 py-3.5 font-medium">Subject</th>
+                <th className="px-5 py-3.5 font-medium">Date</th>
+                <th className="px-5 py-3.5 font-medium">Status</th>
+                <th className="px-5 py-3.5 font-medium text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-charcoal-950/6">
+              {messages.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-sm text-stone-400">
+                    No messages yet.
+                  </td>
+                </tr>
+              ) : (
+                messages.map((m) => (
+                  <tr
+                    key={m._id}
+                    className={`cursor-pointer transition-colors hover:bg-beige-100/40 ${
+                      m.status === "Unread" ? "font-medium" : ""
+                    }`}
+                    onClick={() => open(m)}
+                  >
+                    <td className="px-5 py-3.5 text-charcoal-950">
+                      <div className="flex items-center gap-2">
+                        {m.status === "Unread" && (
+                          <span className="h-2 w-2 shrink-0 rounded-full bg-copper-500" />
+                        )}
+                        {m.name}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-stone-600">{m.email}</td>
+                    <td className="px-5 py-3.5 text-stone-600">{m.phone}</td>
+                    <td className="px-5 py-3.5 text-stone-700">{m.subject}</td>
+                    <td className="px-5 py-3.5 text-stone-500 text-xs">{formatDate(m.createdAt)}</td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant={statusVariant[m.status]}>{m.status}</Badge>
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); open(m); }}
+                        className="rounded-lg p-1.5 text-stone-400 hover:bg-beige-100 hover:text-charcoal-950"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Detail Drawer */}
       <Drawer open={!!selected} onClose={() => setSelected(null)} title={selected?.subject ?? "Message"}>
@@ -121,18 +155,20 @@ export default function MessagesAdmin() {
                     <Mail className="h-3.5 w-3.5" />
                     {selected.email}
                   </a>
-                  <a
-                    href={`tel:${selected.phone}`}
-                    className="flex items-center gap-2 text-sm text-stone-500 hover:text-copper-600"
-                  >
-                    <Phone className="h-3.5 w-3.5" />
-                    {selected.phone}
-                  </a>
+                  {selected.phone && (
+                    <a
+                      href={`tel:${selected.phone}`}
+                      className="flex items-center gap-2 text-sm text-stone-500 hover:text-copper-600"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      {selected.phone}
+                    </a>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Badge variant={statusVariant[selected.status]}>{selected.status}</Badge>
-                <span className="text-xs text-stone-400">{formatDate(selected.date)}</span>
+                <span className="text-xs text-stone-400">{formatDate(selected.createdAt)}</span>
               </div>
             </div>
 

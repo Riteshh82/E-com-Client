@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
-import type { Category } from "../../data/mockData";
+import type { ApiCategory } from "../../api";
 import { Button } from "../ui/Button";
 import { Input, Textarea } from "../ui/index";
 import { useToast } from "../../context/ToastContext";
+import { apiSubmitMessage } from "../../api";
 
 /* ── CategoryCard ── */
-export function CategoryCard({ category }: { category: Category }) {
+export function CategoryCard({ category }: { category: ApiCategory }) {
   return (
     <Link
       to={`/products?category=${category.slug}`}
@@ -64,7 +65,7 @@ export function BulkOrderCTA() {
         <div className="flex flex-col items-start justify-between gap-12 lg:flex-row lg:items-center">
           <div className="max-w-2xl">
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-400">
-              B2B & Commercial
+              B2B &amp; Commercial
             </span>
             <h2 className="mt-3 font-display text-4xl leading-tight text-cream-50 sm:text-5xl">
               Planning a
@@ -106,11 +107,30 @@ export function BulkOrderCTA() {
 export function ContactForm() {
   const { showToast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
-    showToast("Message sent! We'll get back to you within one business day.");
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      name: String(fd.get("name") ?? ""),
+      email: String(fd.get("email") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      subject: "Website Contact Form",
+      message: String(fd.get("message") ?? ""),
+    };
+
+    setSubmitting(true);
+    try {
+      await apiSubmitMessage(payload);
+      setSubmitted(true);
+      showToast("Message sent! We'll get back to you within one business day.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to send message. Please try again.";
+      showToast(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -138,13 +158,13 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Input label="Name" placeholder="Your full name" required />
-        <Input label="Email" type="email" placeholder="you@company.com" required />
+        <Input name="name" label="Name" placeholder="Your full name" required />
+        <Input name="email" label="Email" type="email" placeholder="you@company.com" required />
       </div>
-      <Input label="Phone" type="tel" placeholder="+91 98765 43210" />
-      <Textarea label="Message" placeholder="Tell us how we can help…" rows={5} required />
-      <Button type="submit" className="w-full">
-        Send Message
+      <Input name="phone" label="Phone" type="tel" placeholder="+91 98765 43210" />
+      <Textarea name="message" label="Message" placeholder="Tell us how we can help…" rows={5} required />
+      <Button type="submit" className="w-full" disabled={submitting}>
+        {submitting ? "Sending…" : "Send Message"}
       </Button>
     </form>
   );

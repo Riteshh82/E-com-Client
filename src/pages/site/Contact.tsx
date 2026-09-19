@@ -1,27 +1,33 @@
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { ContactForm } from "../../components/site/Misc";
 import { WhatsAppButton } from "../../components/site/MarketplaceButtons";
-import { companySettings } from "../../data/mockData";
+
+// Company contact details — update these when the Settings API is available
+const COMPANY = {
+  phone: "+91 98765 43210",
+  email: "hello@nextsteelinnovation.in",
+  address: "Plot 14, Industrial Estate, Lower Parel, Mumbai, Maharashtra 400013",
+};
 
 const contactItems = [
   {
     icon: Phone,
     label: "Phone",
-    value: companySettings.phone,
+    value: COMPANY.phone,
     sub: "Mon – Sat, 9 AM – 6 PM IST",
-    href: `tel:${companySettings.phone}`,
+    href: `tel:${COMPANY.phone}`,
   },
   {
     icon: Mail,
     label: "Email",
-    value: companySettings.email,
+    value: COMPANY.email,
     sub: "We reply within one business day",
-    href: `mailto:${companySettings.email}`,
+    href: `mailto:${COMPANY.email}`,
   },
   {
     icon: MapPin,
     label: "Address",
-    value: companySettings.address,
+    value: COMPANY.address,
     sub: "Visit by appointment only",
   },
   {
@@ -83,16 +89,6 @@ export default function Contact() {
 
             {/* WhatsApp */}
             <WhatsAppButton />
-
-            {/* Map */}
-            {/* <div className="mt-2 overflow-hidden rounded-2xl border border-charcoal-950/8 shadow-sm">
-              <iframe
-                title="Coppera location — Lower Parel Mumbai"
-                className="h-60 w-full"
-                loading="lazy"
-                src="https://www.google.com/maps?q=Lower+Parel+Mumbai&output=embed"
-              />
-            </div> */}
           </div>
 
           {/* Right — form */}

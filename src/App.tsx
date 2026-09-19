@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import { SiteLayout } from "./layouts/SiteLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
 
@@ -18,11 +19,12 @@ import ProductForm from "./pages/admin/ProductForm";
 import CategoriesAdmin from "./pages/admin/CategoriesAdmin";
 import BulkOrdersAdmin from "./pages/admin/BulkOrdersAdmin";
 import MessagesAdmin from "./pages/admin/MessagesAdmin";
-import Settings from "./pages/admin/Settings";
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route element={<SiteLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
@@ -43,8 +45,8 @@ export default function App() {
         <Route path="categories" element={<CategoriesAdmin />} />
         <Route path="bulk-orders" element={<BulkOrdersAdmin />} />
         <Route path="messages" element={<MessagesAdmin />} />
-        <Route path="settings" element={<Settings />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }

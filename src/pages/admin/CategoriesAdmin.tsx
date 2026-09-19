@@ -1,6 +1,12 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { categories as initialCategories, type Category } from "../../data/mockData";
+import { useEffect, useState } from "react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  apiGetCategories,
+  apiCreateCategory,
+  apiUpdateCategory,
+  apiDeleteCategory,
+  type ApiCategory,
+} from "../../api";
 import { Button } from "../../components/ui/Button";
 import { Input, Textarea } from "../../components/ui/index";
 import { Modal, ConfirmDialog } from "../../components/ui/Overlay";
@@ -8,35 +14,71 @@ import { useToast } from "../../context/ToastContext";
 import { slugify } from "../../lib/utils";
 
 export default function CategoriesAdmin() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [editing, setEditing] = useState<Category | "new" | null>(null);
-  const [toDelete, setToDelete] = useState<Category | null>(null);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<ApiCategory | "new" | null>(null);
+  const [toDelete, setToDelete] = useState<ApiCategory | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { showToast } = useToast();
+
+  const loadCategories = () => {
+    setLoading(true);
+    apiGetCategories()
+      .then(setCategories)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadCategories(); }, []);
 
   const closeModal = () => setEditing(null);
 
-  const handleSave = (formData: FormData) => {
+  const handleSave = async (formData: FormData) => {
     const name = String(formData.get("name") ?? "");
     const description = String(formData.get("description") ?? "");
-    if (editing === "new") {
-      const newCat: Category = {
-        id: `cat-${Date.now()}`,
-        name,
-        slug: slugify(name),
-        description,
-        image:
-          "https://images.unsplash.com/photo-1622467827417-bec7da96f1ba?auto=format&fit=crop&w=1200&q=80",
-        productCount: 0,
-      };
-      setCategories((prev) => [...prev, newCat]);
-      showToast("Category added.");
-    } else if (editing) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === editing.id ? { ...c, name, description } : c))
-      );
-      showToast("Category updated.");
+    const image = String(formData.get("image") ?? "");
+
+    setSaving(true);
+    try {
+      if (editing === "new") {
+        const newCat = await apiCreateCategory({
+          name,
+          slug: slugify(name),
+          description,
+          image: image || "https://images.unsplash.com/photo-1622467827417-bec7da96f1ba?auto=format&fit=crop&w=1200&q=80",
+          productCount: 0,
+        });
+        setCategories((prev) => [...prev, newCat]);
+        showToast("Category added.");
+      } else if (editing) {
+        const updated = await apiUpdateCategory(editing._id, { name, description, image: image || editing.image });
+        setCategories((prev) => prev.map((c) => (c._id === editing._id ? updated : c)));
+        showToast("Category updated.");
+      }
+      closeModal();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Save failed.";
+      showToast(message);
+    } finally {
+      setSaving(false);
     }
-    closeModal();
+  };
+
+  const handleDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await apiDeleteCategory(toDelete._id);
+      setCategories((prev) => prev.filter((c) => c._id !== toDelete._id));
+      showToast(`${toDelete.name} was deleted.`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Delete failed.";
+      showToast(message);
+    } finally {
+      setDeleting(false);
+      setToDelete(null);
+    }
   };
 
   return (
@@ -51,40 +93,50 @@ export default function CategoriesAdmin() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((c) => (
-          <div key={c.id} className="overflow-hidden rounded-2xl border border-charcoal-950/8 bg-white">
-            <div className="aspect-[16/9] overflow-hidden">
-              <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
-            </div>
-            <div className="p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg text-charcoal-950">{c.name}</h3>
-                <span className="text-xs text-stone-400">{c.productCount} products</span>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((c) => (
+            <div key={c._id} className="overflow-hidden rounded-2xl border border-charcoal-950/8 bg-white">
+              <div className="aspect-[16/9] overflow-hidden">
+                {c.image ? (
+                  <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-beige-100" />
+                )}
               </div>
-              <p className="mt-1.5 line-clamp-2 text-sm text-stone-500">{c.description}</p>
-              <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-red-600 hover:bg-red-50"
-                  onClick={() => setToDelete(c)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Delete
-                </Button>
+              <div className="p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display text-lg text-charcoal-950">{c.name}</h3>
+                  <span className="text-xs text-stone-400">{c.productCount} products</span>
+                </div>
+                <p className="mt-1.5 line-clamp-2 text-sm text-stone-500">{c.description}</p>
+                <div className="mt-4 flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setEditing(c)}>
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-600 hover:bg-red-50"
+                    onClick={() => setToDelete(c)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <Modal
         open={!!editing}
         onClose={closeModal}
-        title={editing === "new" ? "Add Category" : `Edit ${(editing as Category | null)?.name ?? ""}`}
+        title={editing === "new" ? "Add Category" : `Edit ${(editing as ApiCategory | null)?.name ?? ""}`}
       >
         <form
           onSubmit={(e) => {
@@ -96,26 +148,29 @@ export default function CategoriesAdmin() {
           <Input
             name="name"
             label="Category Name"
-            defaultValue={(editing as Category | null)?.name ?? ""}
+            defaultValue={(editing as ApiCategory | null)?.name ?? ""}
             required
           />
           <Textarea
             name="description"
             label="Description"
             rows={3}
-            defaultValue={(editing as Category | null)?.description ?? ""}
+            defaultValue={(editing as ApiCategory | null)?.description ?? ""}
           />
-          <div>
-            <span className="mb-1.5 block text-sm font-medium text-charcoal-900">Category Image</span>
-            <div className="rounded-xl border border-dashed border-charcoal-950/15 px-4 py-6 text-center text-sm text-stone-500">
-              Click Save to use a placeholder image, or drop a file here (demo only)
-            </div>
-          </div>
+          <Input
+            name="image"
+            label="Image URL"
+            type="url"
+            defaultValue={(editing as ApiCategory | null)?.image ?? ""}
+            placeholder="https://images.unsplash.com/…"
+          />
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={closeModal}>
               Cancel
             </Button>
-            <Button type="submit">Save Category</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save Category"}
+            </Button>
           </div>
         </form>
       </Modal>
@@ -123,13 +178,10 @@ export default function CategoriesAdmin() {
       <ConfirmDialog
         open={!!toDelete}
         onClose={() => setToDelete(null)}
-        onConfirm={() => {
-          setCategories((prev) => prev.filter((c) => c.id !== toDelete?.id));
-          showToast(`${toDelete?.name} was deleted.`);
-        }}
+        onConfirm={handleDelete}
         title="Delete category"
         description={`Delete "${toDelete?.name}"? Products in this category will remain but lose their category tag.`}
-        confirmLabel="Delete"
+        confirmLabel={deleting ? "Deleting…" : "Delete"}
         destructive
       />
     </div>

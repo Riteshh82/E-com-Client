@@ -54,7 +54,7 @@ export function AdminLayout() {
           )}
         >
           <div className="flex h-20 items-center justify-between px-6">
-            <span className="font-display text-lg text-cream-50">COPPERA</span>
+            <span className="font-display text-lg text-cream-50">NEXT STEEL INNOVATION</span>
             <button onClick={() => setMobileOpen(false)} aria-label="Close menu">
               <X className="h-5 w-5 text-cream-50" />
             </button>

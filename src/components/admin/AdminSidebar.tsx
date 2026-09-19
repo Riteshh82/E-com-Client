@@ -1,11 +1,10 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
   FolderTree,
   ClipboardList,
   MessageSquare,
-  Settings,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -15,17 +14,17 @@ const links = [
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/bulk-orders", label: "Bulk Orders", icon: ClipboardList },
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
-  { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-charcoal-950/8 bg-charcoal-950 lg:flex">
-      <div className="flex h-20 items-center gap-2.5 px-6">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-copper-500 font-display text-base text-charcoal-950">
-          C
-        </span>
-        <span className="font-display text-lg tracking-wide text-cream-50">COPPERA</span>
+      {/* Logo */}
+      <div className="flex h-16 items-center border-b border-charcoal-950/8 px-6">
+        <Link to="/" className="flex items-center gap-2.5 outline-none" title="View Site">
+          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-8 w-8 rounded-full object-cover" />
+          <span className="font-display text-lg tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
+        </Link>
       </div>
       <nav className="flex-1 space-y-1 px-4 py-4">
         {links.map((link) => (
@@ -46,7 +45,7 @@ export function AdminSidebar() {
         ))}
       </nav>
       <div className="border-t border-cream-50/10 px-6 py-5">
-        <p className="text-xs text-stone-500">Coppera Admin v1.0</p>
+        <p className="text-xs text-stone-500">Next Steel Innovation Admin v1.0</p>
       </div>
     </aside>
   );

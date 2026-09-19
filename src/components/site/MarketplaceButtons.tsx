@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
-import { companySettings } from "../../data/mockData";
+
+const WHATSAPP_LINK = "https://wa.me/919876543210";
 
 // Amazon icon
 function AmazonIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -73,7 +74,7 @@ export function MarketplaceButtons({
 export function WhatsAppButton() {
   return (
     <a
-      href={companySettings.whatsapp}
+      href={WHATSAPP_LINK}
       target="_blank"
       rel="noreferrer"
       className="group inline-flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-sm font-semibold text-emerald-800 transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-100 hover:-translate-y-0.5 hover:shadow-md"
