@@ -293,12 +293,14 @@ export default function ProductForm() {
                 <span className="text-sm font-medium text-charcoal-900">{opt.label}</span>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={opt.checked}
                   onClick={() => opt.set(!opt.checked)}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${opt.checked ? "bg-copper-500" : "bg-charcoal-950/15"}`}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-copper-500 ${opt.checked ? "bg-copper-500" : "bg-charcoal-950/15"}`}
                 >
                   <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                      opt.checked ? "translate-x-5" : "translate-x-0.5"
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out ${
+                      opt.checked ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
                 </button>

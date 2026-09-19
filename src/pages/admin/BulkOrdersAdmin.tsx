@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Paperclip, Phone, Mail, Building2, MapPin, Calendar, Package, StickyNote, Send, Loader2 } from "lucide-react";
+import { Phone, Mail, Building2, MapPin, Calendar, Package, StickyNote, Send, Loader2 } from "lucide-react";
 import {
   apiGetBulkOrders,
   apiUpdateBulkOrder,
