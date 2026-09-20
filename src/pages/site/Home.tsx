@@ -48,7 +48,7 @@ const whyPoints = [
 
 const stats = [
   { value: "8+", label: "Copper Finishes" },
-  { value: "6", label: "Collections" },
+  { value: "20+", label: "Collections" },
   { value: "500+", label: "Projects Completed" },
   { value: "B2B", label: "Bulk Ready" },
 ];

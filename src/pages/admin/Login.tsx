@@ -36,7 +36,7 @@ export default function AdminLogin() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3">
-          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-11 w-11 rounded-full object-cover" />
+          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-11 w-16 object-cover" />
           <span className="font-display text-2xl tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
         </div>
 
@@ -63,19 +63,21 @@ export default function AdminLogin() {
 
         {/* Bottom */}
         <div className="relative">
-          <div className="overflow-hidden rounded-2xl border border-cream-50/8 bg-white/5 p-5 backdrop-blur-sm">
+          <div className=
+          // "overflow-hidden rounded-2xl border border-cream-50/8 bg-white/5 p-5 backdrop-blur-sm"
+          " ">
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                <img
+                {/* <img
                   src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=80&q=80"
                   alt="Copper tile"
                   className="h-full w-full object-cover"
-                />
+                /> */}
               </div>
               <div>
-                <p className="text-sm font-medium text-cream-50">Hammered Copper Panel</p>
+                {/* <p className="text-sm font-medium text-cream-50">Hammered Copper Panel</p>
                 <p className="mt-0.5 text-xs text-stone-500">New bulk inquiry from Studio Mehta</p>
-                <p className="mt-1 text-xs text-copper-400">Just now</p>
+                <p className="mt-1 text-xs text-copper-400">Just now</p> */}
               </div>
             </div>
           </div>
@@ -175,12 +177,12 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          <div className="mt-6 rounded-xl border border-copper-500/20 bg-copper-50 px-4 py-3">
+          {/* <div className="mt-6 rounded-xl border border-copper-500/20 bg-copper-50 px-4 py-3">
             <p className="text-xs text-stone-600">
               <span className="font-semibold">Demo credentials:</span>{" "}
               admin@coppera.in / admin123
             </p>
-          </div>
+          </div> */}
 
           <p className="mt-6 text-center text-xs text-stone-400">
             <Link to="/" className="font-medium text-copper-600 hover:text-copper-700">

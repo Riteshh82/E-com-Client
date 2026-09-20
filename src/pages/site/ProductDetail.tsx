@@ -85,7 +85,7 @@ export default function ProductDetail() {
     <div className="bg-cream-50">
       {/* ── Breadcrumb ── */}
       <nav className="border-b border-charcoal-950/8 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-6 py-3.5 text-sm text-stone-500 lg:px-10">
+        <div className="mx-auto flex max-w-6xl items-center gap-1.5 px-6 py-3.5 text-sm text-stone-500 lg:px-10">
           <Link to="/" className="hover:text-copper-600">Home</Link>
           <ChevronRight className="h-3.5 w-3.5 text-stone-300" />
           <Link to="/products" className="hover:text-copper-600">Products</Link>
@@ -99,10 +99,10 @@ export default function ProductDetail() {
       </nav>
 
       {/* ── Main product ── */}
-      <div className="mx-auto max-w-7xl px-6 py-14 lg:px-10">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+      <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Gallery */}
-          <div className="animate-fade-up">
+          <div className="animate-fade-up lg:max-w-[460px] mx-auto w-full">
             <ProductGallery images={product.images} name={product.name} />
           </div>
 
@@ -118,25 +118,25 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <h1 className="mt-4 font-display text-4xl leading-tight text-charcoal-950 sm:text-5xl">
+            <h1 className="mt-4 font-display text-3xl leading-tight text-charcoal-950 sm:text-4xl">
               {product.name}
             </h1>
 
             {/* Price & Product Code */}
             <div className="mt-4 flex flex-wrap items-center gap-4">
               {product.price > 0 && (
-                <span className="font-display text-3xl font-semibold text-copper-600">
+                <span className="font-display text-2xl font-semibold text-copper-600">
                   ₹{product.price.toLocaleString("en-IN")}
                 </span>
               )}
               {product.productCode && (
-                <span className="rounded-full border border-charcoal-950/10 bg-beige-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <span className="rounded-full border border-charcoal-950/10 bg-beige-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-stone-500">
                   Code: {product.productCode}
                 </span>
               )}
             </div>
 
-            <p className="mt-5 text-base leading-relaxed text-stone-600">
+            <p className="mt-5 text-sm leading-relaxed text-stone-600">
               {product.fullDescription}
             </p>
 

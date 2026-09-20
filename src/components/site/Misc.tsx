@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ApiCategory } from "../../api";
 import { Button } from "../ui/Button";
 import { Input, Textarea } from "../ui/index";
@@ -173,6 +173,18 @@ export function ContactForm() {
 /* ── ProductGallery ── */
 export function ProductGallery({ images, name }: { images: string[]; name: string }) {
   const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActive((prev) => (prev + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const handleNext = () => setActive((prev) => (prev + 1) % images.length);
+  const handlePrev = () => setActive((prev) => (prev - 1 + images.length) % images.length);
+
   return (
     <div>
       {/* Main image */}
@@ -183,7 +195,26 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
         {/* Copper frame on hover */}
-        <div className="absolute inset-0 rounded-2xl ring-0 ring-copper-400/30 transition-all duration-300 group-hover:ring-2" />
+        <div className="absolute inset-0 rounded-2xl ring-0 ring-copper-400/30 transition-all duration-300 group-hover:ring-2 pointer-events-none" />
+
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={handlePrev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/70 p-2 text-charcoal-950 backdrop-blur-sm transition-all hover:bg-white hover:text-copper-600 opacity-0 group-hover:opacity-100"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/70 p-2 text-charcoal-950 backdrop-blur-sm transition-all hover:bg-white hover:text-copper-600 opacity-0 group-hover:opacity-100"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Thumbnails */}
@@ -193,11 +224,10 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
             <button
               key={img + i}
               onClick={() => setActive(i)}
-              className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 hover:opacity-100 ${
-                active === i
+              className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 hover:opacity-100 ${active === i
                   ? "border-copper-500 opacity-100 shadow-md shadow-copper-500/20"
                   : "border-transparent opacity-60"
-              }`}
+                }`}
               aria-label={`View image ${i + 1}`}
             >
               <img src={img} alt="" className="h-full w-full object-cover" />

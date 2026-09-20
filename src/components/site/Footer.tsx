@@ -4,8 +4,8 @@ import { Mail, Phone, MapPin } from "lucide-react";
 // Company settings — update when backend Settings API is available
 const COMPANY = {
   name: "COPPERA",
-  phone: "+91 98765 43210",
-  email: "hello@coppera.in",
+  phone: "+91 8840546629",
+  email: "nextsteelinnovation@gmail.com",
   instagram: "https://instagram.com/coppera",
   facebook: "https://facebook.com/coppera",
   linkedin: "https://linkedin.com/company/coppera",
