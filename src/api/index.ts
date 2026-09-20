@@ -1,11 +1,4 @@
-/**
- * Next Steel Innovation Frontend API Service
- *
- * All functions call the real backend at VITE_API_URL (default: http://localhost:5000/api).
- * Admin routes require a Bearer JWT stored in localStorage under "nsi_admin_token".
- */
-
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5001/api";
 
 // ── Shared types ────────────────────────────────────────────────────────────
 
@@ -119,6 +112,29 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
+
+export async function apiUploadImage(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(`${BASE}/upload`, {
+    method: "POST",
+    headers: {
+      ...authHeaders(),
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? res.statusText);
+  }
+  
+  const data = await res.json();
+  // Ensure the URL is absolute by prepending the backend origin
+  const backendOrigin = new URL(BASE, window.location.origin).origin;
+  return { ...data, url: `${backendOrigin}${data.url}` };
+}
 
 export async function apiLogin(
   email: string,

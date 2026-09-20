@@ -18,11 +18,11 @@ const links = [
 
 export function AdminSidebar() {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-charcoal-950/8 bg-charcoal-950 lg:flex">
+    <aside className="sticky top-0 h-screen hidden w-64 shrink-0 flex-col overflow-y-auto border-r border-charcoal-950/8 bg-charcoal-950 lg:flex">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-charcoal-950/8 px-6">
         <Link to="/" className="flex items-center gap-2.5 outline-none" title="View Site">
-          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-8 w-8 rounded-full object-cover" />
+          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-12 w-16 object-cover" />
           <span className="font-display text-lg tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
         </Link>
       </div>

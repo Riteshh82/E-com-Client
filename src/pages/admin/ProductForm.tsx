@@ -1,4 +1,4 @@
-import { useState, useEffect, type DragEvent, type FormEvent } from "react";
+import { useState, useEffect, useRef, type DragEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { UploadCloud, Star, X, Loader2 } from "lucide-react";
 import { Input, Select, Textarea } from "../../components/ui/index";
@@ -8,6 +8,7 @@ import {
   apiGetCategories,
   apiCreateProduct,
   apiUpdateProduct,
+  apiUploadImage,
   type ApiProduct,
   type ApiCategory,
 } from "../../api";
@@ -31,9 +32,12 @@ export default function ProductForm() {
   const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [featured, setFeatured] = useState(false);
   const [bulkAvailable, setBulkAvailable] = useState(true);
   const [published, setPublished] = useState(true);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Always load categories
@@ -65,12 +69,47 @@ export default function ProductForm() {
     if (url) { setImages((prev) => [...prev, url]); setImageUrl(""); }
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
-    // In production, handle file upload here; for now accept dropped URL text
+    
+    // Check if it's a file drop
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      await handleFileSelect(e.dataTransfer.files[0]);
+      return;
+    }
+
+    // Fallback to text
     const text = e.dataTransfer.getData("text/plain");
     if (text.startsWith("http")) setImages((prev) => [...prev, text]);
+  };
+
+  const handleFileSelect = async (file: File) => {
+    if (!file) return;
+    
+    // Basic validation
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      showToast("Only JPG, PNG and WebP images are allowed.");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Image size should be less than 5MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const res = await apiUploadImage(file);
+      setImages((prev) => [...prev, res.url]);
+      showToast("Image uploaded successfully.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload failed.";
+      showToast(message);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -206,12 +245,36 @@ export default function ProductForm() {
             onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`mt-5 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
-              dragActive ? "border-copper-500 bg-copper-50" : "border-charcoal-950/15"
-            }`}
+            onClick={() => !uploadingImage && fileInputRef.current?.click()}
+            className={`mt-5 flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+              dragActive ? "border-copper-500 bg-copper-50" : "border-charcoal-950/15 hover:bg-stone-50"
+            } ${uploadingImage ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <UploadCloud className="h-7 w-7 text-stone-400" />
-            <p className="text-sm text-stone-500">Add an image URL below</p>
+            {uploadingImage ? (
+              <Loader2 className="h-7 w-7 animate-spin text-copper-500" />
+            ) : (
+              <UploadCloud className="h-7 w-7 text-stone-400" />
+            )}
+            <p className="text-sm text-stone-500">
+              {uploadingImage ? "Uploading..." : "Click to select or drag and drop an image"}
+            </p>
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              className="hidden" 
+              accept="image/jpeg, image/png, image/webp"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFileSelect(e.target.files[0]);
+                  e.target.value = ''; // Reset input
+                }
+              }}
+            />
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-sm text-stone-500">
+            <span className="flex-1 border-t border-charcoal-950/10"></span>
+            OR
+            <span className="flex-1 border-t border-charcoal-950/10"></span>
           </div>
           <div className="mt-4 flex gap-2">
             <input

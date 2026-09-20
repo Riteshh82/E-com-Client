@@ -11,7 +11,6 @@ import {
   FolderTree,
   ClipboardList,
   MessageSquare,
-  Settings,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -21,7 +20,6 @@ const links = [
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/bulk-orders", label: "Bulk Orders", icon: ClipboardList },
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
-  { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminLayout() {
