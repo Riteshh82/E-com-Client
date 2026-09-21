@@ -24,6 +24,8 @@ export interface ApiProduct {
   productCode: string;
   amazonUrl: string;
   flipkartUrl: string;
+  myntraUrl: string;
+  whatsappOrder: boolean;
   featured: boolean;
   bulkAvailable: boolean;
   status: "Published" | "Draft";

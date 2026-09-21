@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ApiCategory } from "../../api";
@@ -46,6 +46,26 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
     </Link>
   );
 }
+
+/** Shimmer skeleton that matches the CategoryCard layout (460px tall card) */
+export function CategoryCardSkeleton() {
+  return (
+    <div className="relative flex h-[460px] flex-col justify-end overflow-hidden rounded-2xl">
+      {/* Full-card shimmer background */}
+      <div className="absolute inset-0 skeleton-shimmer" />
+      {/* Fake bottom text area */}
+      <div className="relative p-7 space-y-3">
+        <div className="h-5 w-20 rounded-full skeleton-shimmer opacity-60" />
+        <div className="h-7 w-48 rounded-lg skeleton-shimmer opacity-60" />
+        <div className="h-4 w-56 rounded-lg skeleton-shimmer opacity-60" />
+        <div className="h-4 w-36 rounded-lg skeleton-shimmer opacity-60" />
+        <div className="h-4 w-20 rounded-full skeleton-shimmer opacity-60 mt-2" />
+      </div>
+    </div>
+  );
+}
+
+
 
 /* ── BulkOrderCTA ── */
 export function BulkOrderCTA() {
@@ -173,6 +193,15 @@ export function ContactForm() {
 /* ── ProductGallery ── */
 export function ProductGallery({ images, name }: { images: string[]; name: string }) {
   const [active, setActive] = useState(0);
+  // Track which image URLs have already been loaded — avoids re-showing skeleton
+  // for cached/previously-seen images when the user switches back
+  const [loadedUrls, setLoadedUrls] = useState<Set<string>>(new Set());
+
+  // Reset when the images array itself changes (navigating to a different product)
+  useEffect(() => {
+    setLoadedUrls(new Set());
+    setActive(0);
+  }, [images]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -185,14 +214,25 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
   const handleNext = () => setActive((prev) => (prev + 1) % images.length);
   const handlePrev = () => setActive((prev) => (prev - 1 + images.length) % images.length);
 
+  const activeUrl = images[active];
+  const isMainLoaded = loadedUrls.has(activeUrl);
+
+  const markLoaded = (url: string) =>
+    setLoadedUrls((prev) => new Set([...prev, url]));
+
   return (
     <div>
       {/* Main image */}
       <div className="group relative aspect-square overflow-hidden rounded-2xl bg-beige-100 shadow-xl">
+        {/* Shimmer only while this specific URL hasn't loaded yet */}
+        {!isMainLoaded && (
+          <div className="absolute inset-0 skeleton-shimmer" />
+        )}
         <img
-          src={images[active]}
+          src={activeUrl}
           alt={name}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          onLoad={() => markLoaded(activeUrl)}
+          className={`h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${isMainLoaded ? "opacity-100" : "opacity-0"}`}
         />
         {/* Copper frame on hover */}
         <div className="absolute inset-0 rounded-2xl ring-0 ring-copper-400/30 transition-all duration-300 group-hover:ring-2 pointer-events-none" />
@@ -221,20 +261,59 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
       {images.length > 1 && (
         <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
           {images.map((img, i) => (
-            <button
+            <ThumbnailButton
               key={img + i}
+              src={img}
+              index={i}
+              active={active}
+              preloaded={loadedUrls.has(img)}
+              onLoaded={() => markLoaded(img)}
               onClick={() => setActive(i)}
-              className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 hover:opacity-100 ${active === i
-                  ? "border-copper-500 opacity-100 shadow-md shadow-copper-500/20"
-                  : "border-transparent opacity-60"
-                }`}
-              aria-label={`View image ${i + 1}`}
-            >
-              <img src={img} alt="" className="h-full w-full object-cover" />
-            </button>
+            />
           ))}
         </div>
       )}
     </div>
   );
 }
+
+/** Individual thumbnail with its own load state */
+function ThumbnailButton({
+  src, index, active, preloaded, onLoaded, onClick,
+}: {
+  src: string; index: number; active: number;
+  preloaded: boolean; onLoaded: () => void; onClick: () => void;
+}) {
+  const [loaded, setLoaded] = useState(preloaded);
+
+  // Callback ref: if the image is already browser-cached when React mounts
+  // the element, node.complete is true immediately — skip skeleton.
+  const thumbRef = useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete && !loaded) { setLoaded(true); onLoaded(); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleLoad = () => { setLoaded(true); onLoaded(); };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 hover:opacity-100 ${
+        active === index
+          ? "border-copper-500 opacity-100 shadow-md shadow-copper-500/20"
+          : "border-transparent opacity-60"
+      }`}
+      aria-label={`View image ${index + 1}`}
+    >
+      {!loaded && <div className="absolute inset-0 skeleton-shimmer" />}
+      <img
+        ref={thumbRef}
+        src={src}
+        alt=""
+        onLoad={handleLoad}
+        className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </button>
+  );
+}
+

@@ -10,8 +10,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
-import { ProductGrid } from "../../components/site/ProductCard";
-import { CategoryCard, BulkOrderCTA } from "../../components/site/Misc";
+import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
+import { CategoryCard, CategoryCardSkeleton, BulkOrderCTA } from "../../components/site/Misc";
 import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 
 const features = [
@@ -56,14 +56,18 @@ const stats = [
 export default function Home() {
   const [featured, setFeatured] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
     apiGetProducts({ featured: "true", status: "Published" })
       .then((r) => setFeatured(r.products))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingProducts(false));
     apiGetCategories()
       .then(setCategories)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingCategories(false));
   }, []);
 
   return (
@@ -179,10 +183,10 @@ export default function Home() {
         <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
-              Our Collection
+              Our Product
             </span>
             <h2 className="mt-2 font-display text-4xl text-charcoal-950">
-              Featured Collection
+              Best Seller
             </h2>
             <p className="mt-2.5 text-stone-500">
               Explore our most popular copper designs, each crafted to make a statement.
@@ -195,7 +199,10 @@ export default function Home() {
             View all products <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
-        <ProductGrid products={featured} />
+        {loadingProducts
+          ? <ProductGridSkeleton count={4} />
+          : <ProductGrid products={featured} />
+        }
       </section>
 
       {/* ── Divider ── */}
@@ -210,7 +217,7 @@ export default function Home() {
                 Browse
               </span>
               <h2 className="mt-2 font-display text-4xl text-charcoal-950">
-                Shop by Collection
+                Shop by Categories
               </h2>
               <p className="mt-2.5 text-stone-500">
                 Six curated copper ranges, each engineered for a different feel.
@@ -220,15 +227,18 @@ export default function Home() {
               to="/collections"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-charcoal-950/15 px-5 py-2.5 text-sm font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
             >
-              All collections <ArrowUpRight className="h-4 w-4" />
+              All Categories <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.slice(0, 3).map((c, i) => (
-              <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
-                <CategoryCard category={c} />
-              </div>
-            ))}
+            {loadingCategories
+              ? Array.from({ length: 3 }).map((_, i) => <CategoryCardSkeleton key={i} />)
+              : categories.slice(0, 3).map((c, i) => (
+                  <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
+                    <CategoryCard category={c} />
+                  </div>
+                ))
+            }
           </div>
         </div>
       </section>

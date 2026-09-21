@@ -25,6 +25,7 @@ export default function ProductForm() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loadingData, setLoadingData] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -36,6 +37,7 @@ export default function ProductForm() {
   const [featured, setFeatured] = useState(false);
   const [bulkAvailable, setBulkAvailable] = useState(true);
   const [published, setPublished] = useState(true);
+  const [whatsappOrder, setWhatsappOrder] = useState(true); // default ON for new products
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,7 @@ export default function ProductForm() {
         setFeatured(p.featured);
         setBulkAvailable(p.bulkAvailable);
         setPublished(p.status === "Published");
+        setWhatsappOrder(p.whatsappOrder ?? true);
       })
       .catch(() => navigate("/admin/products"))
       .finally(() => setLoadingData(false));
@@ -116,6 +119,34 @@ export default function ProductForm() {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
+    // ── Client-side validation ──────────────────────────────────────────────
+    const errors: Record<string, string> = {};
+    if (images.length === 0) {
+      errors.images = "At least one product photo is required.";
+    }
+    const priceVal = parseFloat(String(fd.get("price") ?? "0"));
+    if (!priceVal || priceVal <= 0) {
+      errors.price = "Price must be greater than ₹0.";
+    }
+    const categoryVal = String(fd.get("category") ?? "").trim();
+    if (!categoryVal) {
+      errors.category = "Please select a category.";
+    }
+    const productCodeVal = String(fd.get("productCode") ?? "").trim();
+    if (!productCodeVal) {
+      errors.productCode = "Product code is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      // Scroll to first error
+      const firstErrorId = Object.keys(errors)[0];
+      document.getElementById(`field-${firstErrorId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setValidationErrors({});
+    // ── End validation ──────────────────────────────────────────────────────
+
     const applicationsRaw = String(fd.get("applications") ?? "");
     const finishesRaw = String(fd.get("finishes") ?? "");
 
@@ -139,8 +170,10 @@ export default function ProductForm() {
       finishes: finishesRaw.split(",").map((s) => s.trim()).filter(Boolean),
       amazonUrl: String(fd.get("amazonUrl") ?? ""),
       flipkartUrl: String(fd.get("flipkartUrl") ?? ""),
+      myntraUrl: String(fd.get("myntraUrl") ?? ""),
       featured,
       bulkAvailable,
+      whatsappOrder,
       status: published ? "Published" : "Draft",
     };
 
@@ -186,6 +219,7 @@ export default function ProductForm() {
           <h2 className="font-display text-lg text-charcoal-950">Basic Information</h2>
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Input
+              id="field-name"
               label="Product Name"
               name="name"
               value={name}
@@ -194,30 +228,51 @@ export default function ProductForm() {
               required
             />
             <Input label="Slug" value={slugify(name || "")} readOnly placeholder="auto-generated" />
-            <Select label="Category" name="category" defaultValue={existing?.category ?? ""} required>
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c._id} value={c.name}>{c.name}</option>
-              ))}
-            </Select>
+            <div id="field-category">
+              <Select
+                label="Category *"
+                name="category"
+                defaultValue={existing?.category ?? ""}
+                required
+                onChange={() => setValidationErrors((prev) => ({ ...prev, category: "" }))}
+              >
+                <option value="">Select category</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c.name}>{c.name}</option>
+                ))}
+              </Select>
+              {validationErrors.category && (
+                <p className="mt-1 text-xs text-red-500">{validationErrors.category}</p>
+              )}
+            </div>
             <div />
-            <Input
-              label="Price (₹)"
-              name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="e.g. 1999"
-            />
-            <Input
-              label="Product Code"
-              name="productCode"
-              value={productCode}
-              onChange={(e) => setProductCode(e.target.value)}
-              placeholder="e.g. NSI-CU-001"
-            />
+            <div id="field-price">
+              <Input
+                label="Price (₹) *"
+                name="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(e) => { setPrice(e.target.value); setValidationErrors((prev) => ({ ...prev, price: "" })); }}
+                placeholder="e.g. 1999"
+              />
+              {validationErrors.price && (
+                <p className="mt-1 text-xs text-red-500">{validationErrors.price}</p>
+              )}
+            </div>
+            <div id="field-productCode">
+              <Input
+                label="Product Code *"
+                name="productCode"
+                value={productCode}
+                onChange={(e) => { setProductCode(e.target.value); setValidationErrors((prev) => ({ ...prev, productCode: "" })); }}
+                placeholder="e.g. NSI-CU-001"
+              />
+              {validationErrors.productCode && (
+                <p className="mt-1 text-xs text-red-500">{validationErrors.productCode}</p>
+              )}
+            </div>
             <div className="sm:col-span-2">
               <Textarea
                 label="Short Description"
@@ -240,7 +295,13 @@ export default function ProductForm() {
         </section>
 
         <section className="rounded-2xl border border-charcoal-950/8 bg-white p-6">
-          <h2 className="font-display text-lg text-charcoal-950">Images</h2>
+          <h2 className="font-display text-lg text-charcoal-950">Images <span className="text-red-500">*</span></h2>
+          {/* Images required error */}
+          {validationErrors.images && (
+            <p id="field-images" className="mt-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+              {validationErrors.images}
+            </p>
+          )}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
@@ -330,7 +391,7 @@ export default function ProductForm() {
         </section>
 
         <section className="rounded-2xl border border-charcoal-950/8 bg-white p-6">
-          <h2 className="font-display text-lg text-charcoal-950">Finishes & Marketplace Links</h2>
+          <h2 className="font-display text-lg text-charcoal-950">Finishes &amp; Marketplace Links</h2>
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Input
               name="finishes"
@@ -341,6 +402,7 @@ export default function ProductForm() {
             />
             <Input name="amazonUrl" label="Amazon URL" type="url" defaultValue={existing?.amazonUrl} placeholder="https://www.amazon.in/…" />
             <Input name="flipkartUrl" label="Flipkart URL" type="url" defaultValue={existing?.flipkartUrl} placeholder="https://www.flipkart.com/…" />
+            <Input name="myntraUrl" label="Myntra URL" type="url" defaultValue={existing?.myntraUrl} placeholder="https://www.myntra.com/…" />
           </div>
         </section>
 
@@ -350,10 +412,16 @@ export default function ProductForm() {
             {[
               { label: "Featured Product", checked: featured, set: setFeatured },
               { label: "Bulk Order Available", checked: bulkAvailable, set: setBulkAvailable },
+              { label: "WhatsApp Order Available", checked: whatsappOrder, set: setWhatsappOrder },
               { label: "Published", checked: published, set: setPublished },
             ].map((opt) => (
               <label key={opt.label} className="flex items-center justify-between rounded-xl border border-charcoal-950/8 px-4 py-3">
-                <span className="text-sm font-medium text-charcoal-900">{opt.label}</span>
+                <div>
+                  <span className="text-sm font-medium text-charcoal-900">{opt.label}</span>
+                  {opt.label === "WhatsApp Order Available" && (
+                    <p className="text-xs text-stone-400 mt-0.5">Show "Order on WhatsApp" button for this product</p>
+                  )}
+                </div>
                 <button
                   type="button"
                   role="switch"

@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ProductGrid } from "../../components/site/ProductCard";
+import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
 import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 import { cn } from "../../lib/utils";
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -142,17 +142,34 @@ export default function Products() {
         )}
 
         {/* States */}
-        {loading && (
-          <div className="flex items-center justify-center py-32">
-            <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
-          </div>
-        )}
+        {loading && <ProductGridSkeleton count={8} />}
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-600">
             {error}
           </div>
         )}
-        {!loading && !error && <ProductGrid products={products} />}
+        {!loading && !error && products.length === 0 && (
+          <div className="flex flex-col items-center rounded-2xl border border-dashed border-charcoal-950/12 py-20 text-center animate-fade-up">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-copper-50 text-copper-400">
+              <Search className="h-7 w-7" />
+            </div>
+            <p className="font-display text-lg text-charcoal-950">No results found</p>
+            <p className="mt-1.5 text-sm text-stone-500">
+              {query
+                ? `No products match "${query}". Try a different search term.`
+                : "No products in this category yet."}
+            </p>
+            {(activeCategory !== "all" || query) && (
+              <button
+                onClick={() => { setSearchParams({}); setQuery(""); }}
+                className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-charcoal-950/15 px-5 py-2 text-sm font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
+              >
+                <X className="h-3.5 w-3.5" /> Clear filters
+              </button>
+            )}
+          </div>
+        )}
+        {!loading && !error && products.length > 0 && <ProductGrid products={products} />}
       </div>
     </div>
   );

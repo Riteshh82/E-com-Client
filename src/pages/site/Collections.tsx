@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { CategoryCard } from "../../components/site/Misc";
+import { CategoryCard, CategoryCardSkeleton } from "../../components/site/Misc";
 import { apiGetCategories, type ApiCategory } from "../../api";
-import { ArrowDownRight, Loader2 } from "lucide-react";
+import { ArrowDownRight } from "lucide-react";
 
 export default function Collections() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
@@ -33,7 +33,7 @@ export default function Collections() {
               Our Ranges
             </span>
             <h1 className="mt-5 font-display text-5xl leading-tight text-cream-50 sm:text-6xl lg:text-7xl">
-              Collections
+              Categories
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-stone-400">
               Six curated ranges of copper surfaces, each engineered for a distinct mood,
@@ -49,19 +49,17 @@ export default function Collections() {
 
       {/* ── Grid ── */}
       <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-        {loading ? (
-          <div className="flex items-center justify-center py-32">
-            <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((c, i) => (
-              <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
-                <CategoryCard category={c} />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <CategoryCardSkeleton key={i} />
+              ))
+            : categories.map((c, i) => (
+                <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
+                  <CategoryCard category={c} />
+                </div>
+              ))}
+        </div>
       </section>
 
       {/* ── Bottom CTA ── */}

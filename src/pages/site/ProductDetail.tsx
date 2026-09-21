@@ -5,8 +5,8 @@ import { ProductGallery } from "../../components/site/Misc";
 import { Badge } from "../../components/ui/index";
 import { MarketplaceButtons } from "../../components/site/MarketplaceButtons";
 import { Button } from "../../components/ui/Button";
-import { ProductGrid } from "../../components/site/ProductCard";
-import { ChevronRight, CheckCircle2, Package, ArrowRight, Loader2 } from "lucide-react";
+import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
+import { ChevronRight, CheckCircle2, Package, ArrowRight } from "lucide-react";
 
 const specLabels: Record<string, string> = {
   material: "Material",
@@ -23,6 +23,90 @@ function hasValue(v: unknown): boolean {
   if (Array.isArray(v)) return v.length > 0 && v.some((x) => String(x).trim().length > 0);
   if (typeof v === "number") return v > 0;
   return false;
+}
+
+/** Full-page skeleton that mirrors the ProductDetail layout */
+function ProductDetailSkeleton() {
+  return (
+    <div className="bg-cream-50">
+      {/* Breadcrumb skeleton */}
+      <div className="border-b border-charcoal-950/8 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-6 py-3.5 lg:px-10">
+          <div className="h-3 w-10 rounded skeleton-shimmer" />
+          <div className="h-3 w-2 rounded skeleton-shimmer" />
+          <div className="h-3 w-16 rounded skeleton-shimmer" />
+          <div className="h-3 w-2 rounded skeleton-shimmer" />
+          <div className="h-3 w-32 rounded skeleton-shimmer" />
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+          {/* Gallery skeleton */}
+          <div className="lg:max-w-[460px] mx-auto w-full space-y-4">
+            <div className="aspect-square w-full rounded-2xl skeleton-shimmer shadow-xl" />
+            <div className="flex gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-20 w-20 shrink-0 rounded-xl skeleton-shimmer" />
+              ))}
+            </div>
+          </div>
+
+          {/* Info skeleton */}
+          <div className="space-y-4">
+            {/* Badges */}
+            <div className="flex gap-2">
+              <div className="h-6 w-28 rounded-full skeleton-shimmer" />
+              <div className="h-6 w-20 rounded-full skeleton-shimmer" />
+            </div>
+            {/* Title */}
+            <div className="space-y-2 pt-1">
+              <div className="h-8 w-4/5 rounded-lg skeleton-shimmer" />
+              <div className="h-8 w-2/3 rounded-lg skeleton-shimmer" />
+            </div>
+            {/* Price */}
+            <div className="flex items-center gap-3 pt-1">
+              <div className="h-7 w-24 rounded-lg skeleton-shimmer" />
+              <div className="h-5 w-20 rounded-full skeleton-shimmer" />
+            </div>
+            {/* Description */}
+            <div className="space-y-2 pt-2">
+              <div className="h-4 w-full rounded skeleton-shimmer" />
+              <div className="h-4 w-5/6 rounded skeleton-shimmer" />
+              <div className="h-4 w-4/5 rounded skeleton-shimmer" />
+              <div className="h-4 w-3/4 rounded skeleton-shimmer" />
+            </div>
+            {/* Specs table */}
+            <div className="mt-4 overflow-hidden rounded-2xl border border-charcoal-950/8">
+              <div className="h-10 skeleton-shimmer border-b border-charcoal-950/8" />
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-4 px-5 py-3 border-b border-charcoal-950/6">
+                  <div className="h-4 w-20 rounded skeleton-shimmer" />
+                  <div className="h-4 w-32 rounded skeleton-shimmer" />
+                </div>
+              ))}
+            </div>
+            {/* Marketplace buttons */}
+            <div className="flex gap-3 pt-2">
+              <div className="h-11 flex-1 rounded-xl skeleton-shimmer" />
+              <div className="h-11 flex-1 rounded-xl skeleton-shimmer" />
+            </div>
+            {/* Bulk panel */}
+            <div className="h-32 w-full rounded-2xl skeleton-shimmer" />
+          </div>
+        </div>
+
+        {/* Related products skeleton */}
+        <div className="mt-28">
+          <div className="mb-10">
+            <div className="h-3 w-28 rounded skeleton-shimmer" />
+            <div className="mt-2 h-8 w-48 rounded-lg skeleton-shimmer" />
+          </div>
+          <ProductGridSkeleton count={4} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ProductDetail() {
@@ -52,11 +136,7 @@ export default function ProductDetail() {
   }, [slug]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-48">
-        <Loader2 className="h-10 w-10 animate-spin text-copper-500" />
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (notFound || !product) {
@@ -216,7 +296,14 @@ export default function ProductDetail() {
                 Available on leading Indian marketplaces.
               </p>
               <div className="mt-4">
-                <MarketplaceButtons amazonUrl={product.amazonUrl} flipkartUrl={product.flipkartUrl} />
+                <MarketplaceButtons
+                  amazonUrl={product.amazonUrl}
+                  flipkartUrl={product.flipkartUrl}
+                  myntraUrl={product.myntraUrl}
+                  whatsappOrder={product.whatsappOrder}
+                  productName={product.name}
+                  productCode={product.productCode}
+                />
               </div>
             </div>
 

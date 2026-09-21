@@ -9,8 +9,9 @@ const COMPANY = {
   instagram: "https://instagram.com/coppera",
   facebook: "https://facebook.com/coppera",
   linkedin: "https://linkedin.com/company/coppera",
-  amazonStoreUrl: "https://www.amazon.in/s?k=coppera",
-  flipkartStoreUrl: "https://www.flipkart.com/search?q=coppera",
+  amazonStoreUrl: "https://www.amazon.in/stores/ProGrade/page/2CC69FE7-6780-4180-8D2D-6A2CA3296BBD?lp_asin=B0G49GQ1JV&ref_=ast_bln",
+  flipkartStoreUrl: "https://www.flipkart.com/store/prograde",
+  myntraStoreUrl: "https://www.myntra.com/prograde-organisers",
 };
 
 function InstagramIcon() {
@@ -46,7 +47,7 @@ const columns = [
     links: [
       { label: "About", to: "/about" },
       { label: "Products", to: "/products" },
-      { label: "Collections", to: "/collections" },
+      { label: "Categories", to: "/collections" },
       { label: "Contact", to: "/contact" },
     ],
   },
@@ -167,6 +168,16 @@ export function Footer() {
                   className="text-sm text-stone-500 transition-colors hover:text-[#2874F0]"
                 >
                   Flipkart
+                </a>
+              </li>
+              <li>
+                <a
+                  href={COMPANY.myntraStoreUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-stone-500 transition-colors hover:text-[#2874F0]"
+                >
+                  Myntra
                 </a>
               </li>
             </ul>

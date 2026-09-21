@@ -119,6 +119,27 @@ body {
   100% { background-position: 200% center; }
 }
 
+/* Skeleton shimmer utility — used on loading placeholders */
+@keyframes skeleton-wave {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    105deg,
+    #EDE3D3 0%,
+    #EDE3D3 30%,
+    #F5EFE3 48%,
+    #FBF8F2 55%,
+    #F5EFE3 62%,
+    #EDE3D3 80%,
+    #EDE3D3 100%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-wave 1.8s ease-in-out infinite;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-8px); }

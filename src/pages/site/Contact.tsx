@@ -1,6 +1,6 @@
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { ContactForm } from "../../components/site/Misc";
-import { WhatsAppButton } from "../../components/site/MarketplaceButtons";
+import { WhatsAppButton } from "../../components/site/WhatsAppButton";
 
 // Company contact details — update these when the Settings API is available
 const COMPANY = {

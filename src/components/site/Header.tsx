@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, Search, X, ArrowRight } from "lucide-react";
+import { Menu, Search, X, ArrowRight, Layers } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/Button";
-import { apiGetProducts, type ApiProduct } from "../../api";
+import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 
 const navLinks = [
   { label: "Home", to: "/" },
   { label: "Products", to: "/products" },
-  { label: "Collections", to: "/collections" },
+  { label: "Categories", to: "/collections" },
   { label: "About", to: "/about" },
-  { label: "Bulk Orders", to: "/bulk-orders" },
+  // { label: "Bulk Orders", to: "/bulk-orders" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -45,18 +45,58 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
     if (!searchOpen) setQuery("");
   }, [searchOpen]);
 
-  const [suggestions, setSuggestions] = useState<ApiProduct[]>([]);
+  const [productSuggestions, setProductSuggestions] = useState<ApiProduct[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<ApiCategory[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Cache all categories once
+  const allCategoriesRef = useRef<ApiCategory[]>([]);
+  useEffect(() => {
+    apiGetCategories().then((cats) => { allCategoriesRef.current = cats; }).catch(() => {});
+  }, []);
 
   useEffect(() => {
-    if (!searchOpen) { setSuggestions([]); return; }
-    if (query.length < 2) { setSuggestions([]); return; }
+    if (!searchOpen) {
+      setProductSuggestions([]);
+      setCategorySuggestions([]);
+      setHasSearched(false);
+      return;
+    }
+    if (query.length < 2) {
+      setProductSuggestions([]);
+      setCategorySuggestions([]);
+      setHasSearched(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
+      setSearchLoading(true);
+      setHasSearched(false);
+
+      // Filter categories locally (by name)
+      const lowerQ = query.toLowerCase();
+      const matchedCats = allCategoriesRef.current.filter((c) =>
+        c.name.toLowerCase().includes(lowerQ) || c.slug.toLowerCase().includes(lowerQ)
+      );
+      setCategorySuggestions(matchedCats.slice(0, 3));
+
+      // Fetch product matches (name + productCode + text search)
       apiGetProducts({ q: query, status: "Published", limit: "5" })
-        .then((r) => setSuggestions(r.products))
-        .catch(() => setSuggestions([]));
+        .then((r) => {
+          setProductSuggestions(r.products);
+        })
+        .catch(() => setProductSuggestions([]))
+        .finally(() => {
+          setSearchLoading(false);
+          setHasSearched(true);
+        });
     }, 250);
     return () => clearTimeout(timer);
   }, [query, searchOpen]);
+
+  const totalResults = productSuggestions.length + categorySuggestions.length;
+  const showDropdown = query.length >= 2 && (hasSearched || searchLoading);
 
   return (
     <header
@@ -128,7 +168,7 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search copper tiles, panels, finishes…"
+                placeholder="Search by product name, code or category…"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-stone-400"
               />
               {query && (
@@ -138,28 +178,104 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
               )}
             </div>
 
-            {/* Suggestions dropdown */}
-            {suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-charcoal-950/10 bg-white shadow-2xl">
-                {suggestions.map((p) => (
-                  <Link
-                    key={p._id}
-                    to={`/products/${p.slug}`}
-                    onClick={() => { setSearchOpen(false); setQuery(""); }}
-                    className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
-                  >
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="h-10 w-10 rounded-lg object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-charcoal-950">{p.name}</p>
-                      <p className="text-xs text-stone-500">{p.category}</p>
+            {/* Suggestions / No-results dropdown */}
+            {showDropdown && (
+              <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-charcoal-950/10 bg-white shadow-2xl animate-fade-up">
+
+                {searchLoading ? (
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-copper-500 border-t-transparent" />
+                    <span className="text-sm text-stone-400">Searching…</span>
+                  </div>
+                ) : totalResults === 0 ? (
+                  /* No-results state */
+                  <div className="px-5 py-6 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-100 text-stone-400">
+                      <Search className="h-5 w-5" />
                     </div>
-                    <ArrowRight className="ml-auto h-4 w-4 text-stone-300" />
-                  </Link>
-                ))}
+                    <p className="text-sm font-medium text-charcoal-950">No results for "{query}"</p>
+                    <p className="mt-1 text-xs text-stone-500">Try a different name, product code, or category.</p>
+                    <Link
+                      to={`/products?q=${encodeURIComponent(query)}`}
+                      onClick={() => { setSearchOpen(false); setQuery(""); }}
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-charcoal-950/15 px-4 py-2 text-xs font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
+                    >
+                      Browse all products <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Category results */}
+                    {categorySuggestions.length > 0 && (
+                      <div>
+                        <p className="border-b border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                          Categories
+                        </p>
+                        {categorySuggestions.map((c) => (
+                          <Link
+                            key={c._id}
+                            to={`/products?category=${c.slug}`}
+                            onClick={() => { setSearchOpen(false); setQuery(""); }}
+                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
+                          >
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-copper-50 text-copper-500">
+                              <Layers className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-charcoal-950">{c.name}</p>
+                              <p className="text-xs text-stone-500">{c.productCount} products</p>
+                            </div>
+                            <ArrowRight className="ml-auto h-4 w-4 text-stone-300" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Product results */}
+                    {productSuggestions.length > 0 && (
+                      <div>
+                        {categorySuggestions.length > 0 && (
+                          <p className="border-b border-t border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                            Products
+                          </p>
+                        )}
+                        {productSuggestions.map((p) => (
+                          <Link
+                            key={p._id}
+                            to={`/products/${p.slug}`}
+                            onClick={() => { setSearchOpen(false); setQuery(""); }}
+                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
+                          >
+                            <img
+                              src={p.images[0]}
+                              alt={p.name}
+                              className="h-10 w-10 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-charcoal-950">{p.name}</p>
+                              <p className="text-xs text-stone-500">
+                                {p.category}
+                                {p.productCode && <span className="ml-2 font-mono text-[10px] text-stone-400">{p.productCode}</span>}
+                              </p>
+                            </div>
+                            <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-stone-300" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer: view all link */}
+                    <div className="border-t border-charcoal-950/6 px-5 py-3">
+                      <Link
+                        to={`/products?q=${encodeURIComponent(query)}`}
+                        onClick={() => { setSearchOpen(false); setQuery(""); }}
+                        className="flex items-center gap-1.5 text-xs font-medium text-copper-600 hover:text-copper-700"
+                      >
+                        View all results for "{query}" <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

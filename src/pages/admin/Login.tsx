@@ -52,7 +52,7 @@ export default function AdminLogin() {
           </p>
 
           <div className="mt-10 space-y-3">
-            {["Products & Collections", "Bulk Order Management", "Contact Messages", "Site Settings"].map((item) => (
+            {["Products & Categories", "Bulk Order Management", "Contact Messages", "Site Settings"].map((item) => (
               <div key={item} className="flex items-center gap-3 text-sm text-stone-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-copper-400" />
                 {item}
