@@ -40,14 +40,14 @@ export function generateProductSlug(
 ): string {
   const base = slugify(name);
   const code = productCode ? slugify(productCode) : "";
+  const hash = Math.random().toString(36).slice(2, 7);
 
   let slug: string;
   if (code) {
-    // productCode is already unique — use it as the authoritative slug
-    slug = code;
+    // Combine product code with random hash for absolute uniqueness
+    slug = `${code}-${hash}`;
   } else {
-    // Fallback: name + 5-char random hex suffix
-    const hash = Math.random().toString(36).slice(2, 7);
+    // Fallback: name + random hash
     slug = `${base}-${hash}`;
   }
 
