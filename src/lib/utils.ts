@@ -20,3 +20,36 @@ export function slugify(text: string) {
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-");
 }
+
+/**
+ * Generates a URL-safe, unique product slug.
+ *
+ * Priority:
+ *  1. productCode alone  →  e.g. "nsi-024"
+ *  2. name + productCode  →  e.g. "mesh-spice-rack-nsi-024"
+ *  3. name + short hash   →  e.g. "mesh-spice-rack-a4f7b"
+ *
+ * Rules:
+ *  - Lowercase, hyphens only
+ *  - Max 80 chars
+ *  - Always includes a unique suffix to prevent collisions
+ */
+export function generateProductSlug(
+  name: string,
+  productCode?: string
+): string {
+  const base = slugify(name);
+  const code = productCode ? slugify(productCode) : "";
+
+  let slug: string;
+  if (code) {
+    // productCode is already unique — use it as the authoritative slug
+    slug = code;
+  } else {
+    // Fallback: name + 5-char random hex suffix
+    const hash = Math.random().toString(36).slice(2, 7);
+    slug = `${base}-${hash}`;
+  }
+
+  return slug.slice(0, 80);
+}

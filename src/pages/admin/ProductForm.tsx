@@ -12,7 +12,7 @@ import {
   type ApiProduct,
   type ApiCategory,
 } from "../../api";
-import { slugify } from "../../lib/utils";
+import { generateProductSlug } from "../../lib/utils";
 import { useToast } from "../../context/ToastContext";
 
 export default function ProductForm() {
@@ -152,7 +152,10 @@ export default function ProductForm() {
 
     const payload: Partial<ApiProduct> = {
       name: String(fd.get("name") ?? ""),
-      slug: slugify(String(fd.get("name") ?? "")),
+      slug: generateProductSlug(
+        String(fd.get("name") ?? ""),
+        String(fd.get("productCode") ?? "").trim()
+      ),
       category: String(fd.get("category") ?? ""),
       shortDescription: String(fd.get("shortDescription") ?? ""),
       fullDescription: String(fd.get("fullDescription") ?? ""),
@@ -227,7 +230,7 @@ export default function ProductForm() {
               placeholder="e.g. Classic Copper Tile"
               required
             />
-            <Input label="Slug" value={slugify(name || "")} readOnly placeholder="auto-generated" />
+            <Input label="Slug" value={generateProductSlug(name || "", productCode || "")} readOnly placeholder="auto-generated" />
             <div id="field-category">
               <Select
                 label="Category *"

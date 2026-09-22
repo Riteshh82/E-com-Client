@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, Search, X, ArrowRight, Layers } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -36,9 +37,19 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Lock body scroll when drawer is open
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
   }, [mobileOpen]);
 
   useEffect(() => {
@@ -99,6 +110,7 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
   const showDropdown = query.length >= 2 && (hasSearched || searchLoading);
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-50 transition-all duration-400",
@@ -148,12 +160,25 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
               <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           </Link>
+          {/* Mobile menu toggle — animated hamburger ↔ X */}
           <button
-            onClick={() => handleMobileOpen(true)}
-            className="rounded-full p-2 text-charcoal-900 transition-colors hover:bg-beige-100 lg:hidden"
-            aria-label="Open menu"
+            onClick={() => handleMobileOpen(!mobileOpen)}
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-charcoal-900 transition-colors hover:bg-beige-100 lg:hidden"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
-            <Menu className="h-6 w-6" />
+            <Menu
+              className={cn(
+                "absolute h-6 w-6 transition-all duration-200",
+                mobileOpen ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"
+              )}
+            />
+            <X
+              className={cn(
+                "absolute h-6 w-6 transition-all duration-200",
+                mobileOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"
+              )}
+            />
           </button>
         </div>
       </div>
@@ -281,26 +306,35 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
           </div>
         </div>
       )}
+    </header>
 
-      {/* Mobile drawer */}
+    {/* Mobile drawer — portaled into document.body so it is completely
+        decoupled from the sticky header's stacking context. This guarantees
+        identical rendering whether the user is at the top of the page
+        or has scrolled down. */}
+    {createPortal(
       <div
         className={cn(
-          "fixed inset-0 z-[60] lg:hidden",
+          "fixed inset-0 z-[9999] overflow-hidden lg:hidden",
           mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         )}
+        aria-hidden={!mobileOpen}
+        aria-modal={mobileOpen}
+        role="dialog"
       >
         {/* Backdrop */}
         <div
           className={cn(
-            "absolute inset-0 bg-charcoal-950/50 transition-opacity duration-300",
+            "absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300",
             mobileOpen ? "opacity-100" : "opacity-0"
           )}
           onClick={() => handleMobileOpen(false)}
         />
-        {/* Drawer panel — solid bg, slides in from right */}
+
+        {/* Drawer panel */}
         <div
           className={cn(
-            "absolute right-0 top-0 flex h-full w-[85%] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300",
+            "absolute right-0 top-0 flex h-full w-[85%] max-w-sm flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out",
             mobileOpen ? "translate-x-0" : "translate-x-full"
           )}
         >
@@ -346,7 +380,9 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
             </Link>
           </div>
         </div>
-      </div>
-    </header>
+      </div>,
+      document.body
+    )}
+  </>
   );
 }
