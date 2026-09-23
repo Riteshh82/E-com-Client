@@ -129,65 +129,100 @@ export default function BulkOrdersAdmin() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-copper-500" />
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-charcoal-950/8 bg-white">
-          <table className="w-full min-w-[880px] text-left text-sm">
-            <thead className="border-b border-charcoal-950/8 bg-beige-100/40 text-xs uppercase tracking-wide text-stone-500">
-              <tr>
-                <th className="px-5 py-3.5 font-medium">Customer</th>
-                <th className="px-5 py-3.5 font-medium">Company</th>
-                <th className="px-5 py-3.5 font-medium">Product</th>
-                <th className="px-5 py-3.5 font-medium">Quantity</th>
-                <th className="px-5 py-3.5 font-medium">City</th>
-                <th className="px-5 py-3.5 font-medium">Date</th>
-                <th className="px-5 py-3.5 font-medium">Status</th>
-                <th className="px-5 py-3.5 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-charcoal-950/6">
-              {filtered.map((o) => (
-                <tr
+        <>
+          {/* ── Mobile cards (hidden on md+) ── */}
+          <div className="space-y-3 md:hidden">
+            {filtered.length === 0 ? (
+              <div className="rounded-2xl border border-charcoal-950/8 bg-white py-16 text-center text-sm text-stone-400">
+                No inquiries matching this status.
+              </div>
+            ) : (
+              filtered.map((o) => (
+                <div
                   key={o._id}
-                  className="cursor-pointer hover:bg-beige-100/40 transition-colors"
+                  className="cursor-pointer rounded-2xl border border-charcoal-950/8 bg-white p-4 transition-colors hover:border-copper-400/40"
                   onClick={() => setSelected(o)}
                 >
-                  <td className="px-5 py-3.5">
-                    <p className="font-medium text-charcoal-950">{o.customerName}</p>
-                    <p className="text-xs text-stone-400">{o.email}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-stone-600">{o.company}</td>
-                  <td className="px-5 py-3.5 text-stone-600">{o.product}</td>
-                  <td className="px-5 py-3.5 text-stone-600">{o.quantity}</td>
-                  <td className="px-5 py-3.5 text-stone-600">{o.city}</td>
-                  <td className="px-5 py-3.5 text-stone-500 text-xs">{formatDate(o.createdAt)}</td>
-                  <td className="px-5 py-3.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-charcoal-950">{o.customerName}</p>
+                      <p className="mt-0.5 truncate text-xs text-stone-500">{o.email}</p>
+                    </div>
                     <Badge variant={statusVariant[o.status]}>{o.status}</Badge>
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => { e.stopPropagation(); setSelected(o); }}
-                    >
-                      View Details
-                    </Button>
-                  </td>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-charcoal-950/6 pt-3 text-xs text-stone-500">
+                    <span><span className="font-medium text-charcoal-800">Product:</span> {o.product}</span>
+                    <span><span className="font-medium text-charcoal-800">Qty:</span> {o.quantity}</span>
+                    <span><span className="font-medium text-charcoal-800">City:</span> {o.city}</span>
+                    <span>{formatDate(o.createdAt)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* ── Desktop table (hidden on mobile) ── */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-charcoal-950/8 bg-white md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-charcoal-950/8 bg-beige-100/40 text-xs uppercase tracking-wide text-stone-500">
+                <tr>
+                  <th className="px-5 py-3.5 font-medium">Customer</th>
+                  <th className="px-5 py-3.5 font-medium">Company</th>
+                  <th className="px-5 py-3.5 font-medium">Product</th>
+                  <th className="px-5 py-3.5 font-medium">Quantity</th>
+                  <th className="px-5 py-3.5 font-medium">City</th>
+                  <th className="px-5 py-3.5 font-medium">Date</th>
+                  <th className="px-5 py-3.5 font-medium">Status</th>
+                  <th className="px-5 py-3.5 font-medium text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <div className="py-16 text-center text-stone-400">
-              No inquiries matching this status.
-            </div>
-          )}
-        </div>
+              </thead>
+              <tbody className="divide-y divide-charcoal-950/6">
+                {filtered.map((o) => (
+                  <tr
+                    key={o._id}
+                    className="cursor-pointer transition-colors hover:bg-beige-100/40"
+                    onClick={() => setSelected(o)}
+                  >
+                    <td className="px-5 py-3.5">
+                      <p className="font-medium text-charcoal-950">{o.customerName}</p>
+                      <p className="text-xs text-stone-400">{o.email}</p>
+                    </td>
+                    <td className="px-5 py-3.5 text-stone-600">{o.company}</td>
+                    <td className="px-5 py-3.5 text-stone-600">{o.product}</td>
+                    <td className="px-5 py-3.5 text-stone-600">{o.quantity}</td>
+                    <td className="px-5 py-3.5 text-stone-600">{o.city}</td>
+                    <td className="px-5 py-3.5 text-xs text-stone-500">{formatDate(o.createdAt)}</td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant={statusVariant[o.status]}>{o.status}</Badge>
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => { e.stopPropagation(); setSelected(o); }}
+                      >
+                        View Details
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filtered.length === 0 && (
+              <div className="py-16 text-center text-stone-400">
+                No inquiries matching this status.
+              </div>
+            )}
+          </div>
+        </>
       )}
+
 
       {/* Detail Drawer */}
       <Drawer open={!!selected} onClose={() => setSelected(null)} title="Inquiry Details">

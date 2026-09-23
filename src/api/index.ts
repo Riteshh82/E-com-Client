@@ -175,6 +175,17 @@ export async function apiGetProductById(id: string): Promise<ApiProduct> {
   );
 }
 
+export async function apiTrackMarketplaceClick(
+  id: string,
+  marketplace: "amazon" | "flipkart" | "myntra" | "whatsapp"
+): Promise<{ message: string; clicks: number }> {
+  return apiFetch(`/products/${id}/click`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ marketplace }),
+  });
+}
+
 export async function apiCreateProduct(
   data: Partial<ApiProduct>
 ): Promise<ApiProduct> {

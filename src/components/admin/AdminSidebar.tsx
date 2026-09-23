@@ -44,9 +44,9 @@ export function AdminSidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="border-t border-cream-50/10 px-6 py-5">
+      {/* <div className="border-t border-cream-50/10 px-6 py-5">
         <p className="text-xs text-stone-500">Next Steel Innovation Admin v1.0</p>
-      </div>
+      </div> */}
     </aside>
   );
 }

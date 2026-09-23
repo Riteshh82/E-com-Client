@@ -36,9 +36,10 @@ export function AdminHeader({ onMenuClick }: { onMenuClick?: () => void }) {
             <div className="absolute right-0 top-12 w-72 rounded-xl border border-charcoal-950/8 bg-white p-3 shadow-xl">
               <p className="px-2 py-1.5 text-xs font-medium text-stone-400">Notifications</p>
               {[
-                "New bulk inquiry from Studio Mehta Architects",
-                "New contact message from Neha Joshi",
-                "Premium Copper Wall Tile is still in Draft",
+                // "New bulk inquiry from Studio Mehta Architects",
+                // "New contact message from Neha Joshi",
+                // "Premium Copper Wall Tile is still in Draft",
+                "No notifications yet"
               ].map((n) => (
                 <div key={n} className="rounded-lg px-2 py-2 text-sm text-charcoal-800 hover:bg-beige-100">
                   {n}

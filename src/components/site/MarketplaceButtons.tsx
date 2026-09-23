@@ -1,4 +1,5 @@
 // import { ExternalLink, MessageCircle } from "lucide-react";
+import { apiTrackMarketplaceClick } from "../../api";
 
 const WHATSAPP_PHONE = import.meta.env.VITE_WHATSAPP_NUMBER || "919876543210";
 
@@ -43,6 +44,7 @@ interface MarketplaceButtonsProps {
   /** Product name used for the WhatsApp pre-filled message */
   productName?: string;
   productCode?: string;
+  productId?: string;
   size?: "sm" | "md";
 }
 
@@ -53,6 +55,7 @@ export function MarketplaceButtons({
   whatsappOrder = false,
   productName = "",
   productCode,
+  productId,
   size = "md",
 }: MarketplaceButtonsProps) {
   const isSm = size === "sm";
@@ -61,7 +64,8 @@ export function MarketplaceButtons({
   const iconCls = isSm ? "h-3.5 w-3.5" : "h-4 w-4";
 
   // Build an ordered list of active buttons
-  type Btn = { id: string; href: string; cls: string; icon: React.ReactNode; label: string };
+  type BtnId = "amazon" | "flipkart" | "myntra" | "whatsapp";
+  type Btn = { id: BtnId; href: string; cls: string; icon: React.ReactNode; label: string };
   const buttons: Btn[] = [];
 
   if (isValidUrl(amazonUrl))
@@ -124,6 +128,12 @@ export function MarketplaceButtons({
             href={btn.href}
             target="_blank"
             rel="noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (productId) {
+                apiTrackMarketplaceClick(productId, btn.id).catch(console.error);
+              }
+            }}
             className={`group flex items-center justify-center gap-1.5 rounded-xl border font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${btn.cls} ${px} ${isLastOfOdd ? "col-span-2" : ""}`}
           >
             <span className="shrink-0">{btn.icon}</span>

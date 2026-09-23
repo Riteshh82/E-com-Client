@@ -303,6 +303,8 @@ export default function ProductDetail() {
                   whatsappOrder={product.whatsappOrder}
                   productName={product.name}
                   productCode={product.productCode}
+                  productId={product._id}
+                  size="md"
                 />
               </div>
             </div>
