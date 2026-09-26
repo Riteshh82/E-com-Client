@@ -14,6 +14,22 @@ import { Modal, ConfirmDialog } from "../../components/ui/Overlay";
 import { useToast } from "../../context/ToastContext";
 import { slugify } from "../../lib/utils";
 
+function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative h-full w-full bg-beige-100">
+      {!loaded && <div className="absolute inset-0 skeleton-shimmer" />}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
+
 export default function CategoriesAdmin() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,7 +158,7 @@ export default function CategoriesAdmin() {
             <div key={c._id} className="overflow-hidden rounded-2xl border border-charcoal-950/8 bg-white">
               <div className="aspect-[16/9] overflow-hidden">
                 {c.image ? (
-                  <img src={c.image} alt={c.name} className="h-full w-full object-cover" />
+                  <AdminCategoryImage src={c.image} alt={c.name} />
                 ) : (
                   <div className="h-full w-full bg-beige-100" />
                 )}

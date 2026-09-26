@@ -3,6 +3,22 @@ import { Plus, Edit2, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { apiGetAdminNewlyAddeds, apiCreateNewlyAdded, apiUpdateNewlyAdded, apiDeleteNewlyAdded, apiGetCategories, type ApiNewlyAdded, type ApiCategory } from "../../api";
 import { Button } from "../../components/ui/Button";
 
+function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative h-40 w-full bg-beige-100">
+      {!loaded && <div className="absolute inset-0 skeleton-shimmer" />}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
+
 export default function NewlyAddedsAdmin() {
   const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
@@ -60,13 +76,13 @@ export default function NewlyAddedsAdmin() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this newlyAdded?")) return;
+    if (!confirm("Are you sure you want to delete this Banner?")) return;
     try {
       await apiDeleteNewlyAdded(id);
       setNewlyAddeds((prev) => prev.filter((b) => b._id !== id));
     } catch (err) {
       console.error(err);
-      alert("Failed to delete newlyAdded");
+      alert("Failed to delete");
     }
   }
 
@@ -83,7 +99,7 @@ export default function NewlyAddedsAdmin() {
       setIsEditing(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to save newlyAdded");
+      alert("Failed to save");
     }
   }
 
@@ -93,19 +109,19 @@ export default function NewlyAddedsAdmin() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-charcoal-950">NewlyAddeds</h1>
-          <p className="text-sm text-stone-500">Manage homepage newlyAddeds.</p>
+          <h1 className="text-2xl font-bold text-charcoal-950">New Launched</h1>
+          <p className="text-sm text-stone-500">Manage homepage New Launched.</p>
         </div>
         {!isEditing && (
           <Button onClick={handleAddNew}>
-            <Plus className="mr-2 h-4 w-4" /> Add NewlyAdded
+            <Plus className="mr-2 h-4 w-4" /> Add
           </Button>
         )}
       </div>
 
       {isEditing ? (
         <form onSubmit={handleSubmit} className="max-w-2xl rounded-2xl border border-charcoal-950/10 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">{editNewlyAddedId ? "Edit NewlyAdded" : "New NewlyAdded"}</h2>
+          <h2 className="mb-4 text-lg font-semibold">{editNewlyAddedId ? "Edit New Launched" : "New Launched"}</h2>
           
           <div className="mb-4">
             <label className="mb-1 block text-sm font-medium">Image URL</label>
@@ -115,7 +131,7 @@ export default function NewlyAddedsAdmin() {
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               className="w-full rounded-lg border px-3 py-2 outline-none focus:border-copper-500"
-              placeholder="https://example.com/newlyAdded.jpg"
+              placeholder="https://example.com/NewLaunched.jpg"
             />
           </div>
 
@@ -165,7 +181,7 @@ export default function NewlyAddedsAdmin() {
             <Button variant="outline" onClick={() => setIsEditing(false)} type="button">
               Cancel
             </Button>
-            <Button type="submit">Save NewlyAdded</Button>
+            <Button type="submit">Save</Button>
           </div>
         </form>
       ) : (
@@ -174,7 +190,7 @@ export default function NewlyAddedsAdmin() {
             const cat = categories.find((c) => c.slug === b.categorySlug);
             return (
               <div key={b._id} className="overflow-hidden rounded-2xl border border-charcoal-950/10 bg-white shadow-sm">
-                <img src={b.imageUrl} alt="NewlyAdded" className="h-40 w-full object-cover" />
+                <AdminCategoryImage src={b.imageUrl} alt="NewlyAdded" />
                 <div className="p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-semibold text-charcoal-950">
@@ -198,7 +214,7 @@ export default function NewlyAddedsAdmin() {
             );
           })}
           {newlyAddeds.length === 0 && (
-            <p className="col-span-full py-10 text-center text-stone-500">No newlyAddeds found.</p>
+            <p className="col-span-full py-10 text-center text-stone-500">No New Added Product found.</p>
           )}
         </div>
       )}

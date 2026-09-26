@@ -9,16 +9,24 @@ import { apiSubmitMessage } from "../../api";
 
 /* ── CategoryCard ── */
 export function CategoryCard({ category }: { category: ApiCategory }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   return (
     <Link
       to={`/products?category=${category.slug}`}
       className="group relative flex h-[460px] flex-col justify-end overflow-hidden rounded-2xl"
     >
+      {!imgLoaded && (
+        <div className="absolute inset-0 skeleton-shimmer" />
+      )}
       <img
         src={category.image}
         alt={category.name}
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-107"
+        onLoad={() => setImgLoaded(true)}
+        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-107 ${
+          imgLoaded ? "opacity-100" : "opacity-0"
+        }`}
       />
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/95 via-charcoal-950/40 to-transparent transition-opacity duration-400 group-hover:from-charcoal-950/80" />

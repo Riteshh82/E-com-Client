@@ -117,6 +117,10 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("nsi_admin_token");
+      window.location.href = "/admin/login";
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { message?: string }).message ?? res.statusText);
   }
@@ -138,6 +142,10 @@ export async function apiUploadImage(file: File): Promise<{ url: string }> {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("nsi_admin_token");
+      window.location.href = "/admin/login";
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message ?? res.statusText);
   }
