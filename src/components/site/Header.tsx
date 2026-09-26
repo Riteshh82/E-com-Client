@@ -22,7 +22,6 @@ interface HeaderProps {
 export function Header({ onMobileMenuChange }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
   const handleMobileOpen = (open: boolean) => {
@@ -53,8 +52,8 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
   }, [mobileOpen]);
 
   useEffect(() => {
-    if (!searchOpen) setQuery("");
-  }, [searchOpen]);
+    if (!mobileOpen) setQuery("");
+  }, [mobileOpen]);
 
   const [productSuggestions, setProductSuggestions] = useState<ApiProduct[]>([]);
   const [categorySuggestions, setCategorySuggestions] = useState<ApiCategory[]>([]);
@@ -68,12 +67,7 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    if (!searchOpen) {
-      setProductSuggestions([]);
-      setCategorySuggestions([]);
-      setHasSearched(false);
-      return;
-    }
+
     if (query.length < 2) {
       setProductSuggestions([]);
       setCategorySuggestions([]);
@@ -104,7 +98,7 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
         });
     }, 250);
     return () => clearTimeout(timer);
-  }, [query, searchOpen]);
+  }, [query]);
 
   const totalResults = productSuggestions.length + categorySuggestions.length;
   const showDropdown = query.length >= 2 && (hasSearched || searchLoading);
@@ -146,14 +140,125 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
         </nav>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSearchOpen((s) => !s)}
-            className="hidden rounded-full p-2.5 text-charcoal-800 transition-colors hover:bg-beige-100 hover:text-copper-600 lg:inline-flex"
-            aria-label="Search products"
-          >
-            {searchOpen ? <X className="h-4.5 w-4.5" /> : <Search className="h-4.5 w-4.5" />}
-          </button>
+        <div className="flex items-center gap-3 lg:gap-4">
+          {/* Desktop Search Bar */}
+          <div className="hidden lg:block relative z-50">
+            <div className="flex items-center gap-2 rounded-full border border-charcoal-950/12 bg-cream-50 px-2 py-1 focus-within:border-copper-500 focus-within:bg-white transition-all w-[240px] xl:w-[320px] ml-4">
+              <Search className="h-4 w-4 text-stone-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products..."
+                className="w-full bg-transparent text-sm outline-none placeholder:text-stone-400"
+              />
+              {query && (
+                <button onClick={() => setQuery("")} className="text-stone-400 hover:text-charcoal-950">
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Suggestions / No-results dropdown */}
+            {showDropdown && (
+              <div className="absolute right-0 top-full mt-2 w-[380px] overflow-hidden rounded-2xl border border-charcoal-950/10 bg-white shadow-2xl animate-fade-up">
+                {searchLoading ? (
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-copper-500 border-t-transparent" />
+                    <span className="text-sm text-stone-400">Searching…</span>
+                  </div>
+                ) : totalResults === 0 ? (
+                  /* No-results state */
+                  <div className="px-5 py-6 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-100 text-stone-400">
+                      <Search className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-medium text-charcoal-950">No results for "{query}"</p>
+                    <p className="mt-1 text-xs text-stone-500">Try a different name, product code, or category.</p>
+                    <Link
+                      to={`/products?q=${encodeURIComponent(query)}`}
+                      onClick={() => setQuery("")}
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-charcoal-950/15 px-4 py-2 text-xs font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
+                    >
+                      Browse all products <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Category results */}
+                    {categorySuggestions.length > 0 && (
+                      <div>
+                        <p className="border-b border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                          Categories
+                        </p>
+                        {categorySuggestions.map((c) => (
+                          <Link
+                            key={c._id}
+                            to={`/products?category=${c.slug}`}
+                            onClick={() => setQuery("")}
+                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
+                          >
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-copper-50 text-copper-500">
+                              <Layers className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-charcoal-950">{c.name}</p>
+                              <p className="text-xs text-stone-500">{c.productCount} products</p>
+                            </div>
+                            <ArrowRight className="ml-auto h-4 w-4 text-stone-300" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Product results */}
+                    {productSuggestions.length > 0 && (
+                      <div>
+                        {categorySuggestions.length > 0 && (
+                          <p className="border-b border-t border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+                            Products
+                          </p>
+                        )}
+                        {productSuggestions.map((p) => (
+                          <Link
+                            key={p._id}
+                            to={`/products/${p.slug}`}
+                            onClick={() => setQuery("")}
+                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
+                          >
+                            <img
+                              src={p.images[0]}
+                              alt={p.name}
+                              className="h-10 w-10 rounded-lg object-cover"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-charcoal-950">{p.name}</p>
+                              <p className="text-xs text-stone-500">
+                                {p.category}
+                                {p.productCode && <span className="ml-2 font-mono text-[10px] text-stone-400">{p.productCode}</span>}
+                              </p>
+                            </div>
+                            <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-stone-300" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer: view all link */}
+                    <div className="border-t border-charcoal-950/6 px-5 py-3">
+                      <Link
+                        to={`/products?q=${encodeURIComponent(query)}`}
+                        onClick={() => setQuery("")}
+                        className="flex items-center gap-1.5 text-xs font-medium text-copper-600 hover:text-copper-700"
+                      >
+                        View all results for "{query}" <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <Link to="/bulk-orders" className="hidden lg:inline-flex">
             <Button size="sm">
               Bulk Order
@@ -182,130 +287,6 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
           </button>
         </div>
       </div>
-
-      {/* Search bar */}
-      {searchOpen && (
-        <div className="hidden border-t border-charcoal-950/8 bg-cream-50 px-6 py-4 lg:block">
-          <div className="relative mx-auto max-w-2xl">
-            <div className="flex items-center gap-3 rounded-2xl border border-charcoal-950/12 bg-white px-5 py-3 shadow-sm focus-within:border-copper-500 focus-within:shadow-md transition-all">
-              <Search className="h-4 w-4 text-stone-400" />
-              <input
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by product name, code or category…"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-stone-400"
-              />
-              {query && (
-                <button onClick={() => setQuery("")} className="text-stone-400 hover:text-charcoal-950">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Suggestions / No-results dropdown */}
-            {showDropdown && (
-              <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-charcoal-950/10 bg-white shadow-2xl animate-fade-up">
-
-                {searchLoading ? (
-                  <div className="flex items-center gap-3 px-5 py-4">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-copper-500 border-t-transparent" />
-                    <span className="text-sm text-stone-400">Searching…</span>
-                  </div>
-                ) : totalResults === 0 ? (
-                  /* No-results state */
-                  <div className="px-5 py-6 text-center">
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-100 text-stone-400">
-                      <Search className="h-5 w-5" />
-                    </div>
-                    <p className="text-sm font-medium text-charcoal-950">No results for "{query}"</p>
-                    <p className="mt-1 text-xs text-stone-500">Try a different name, product code, or category.</p>
-                    <Link
-                      to={`/products?q=${encodeURIComponent(query)}`}
-                      onClick={() => { setSearchOpen(false); setQuery(""); }}
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-charcoal-950/15 px-4 py-2 text-xs font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
-                    >
-                      Browse all products <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                ) : (
-                  <div>
-                    {/* Category results */}
-                    {categorySuggestions.length > 0 && (
-                      <div>
-                        <p className="border-b border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
-                          Categories
-                        </p>
-                        {categorySuggestions.map((c) => (
-                          <Link
-                            key={c._id}
-                            to={`/products?category=${c.slug}`}
-                            onClick={() => { setSearchOpen(false); setQuery(""); }}
-                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
-                          >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-copper-50 text-copper-500">
-                              <Layers className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-charcoal-950">{c.name}</p>
-                              <p className="text-xs text-stone-500">{c.productCount} products</p>
-                            </div>
-                            <ArrowRight className="ml-auto h-4 w-4 text-stone-300" />
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Product results */}
-                    {productSuggestions.length > 0 && (
-                      <div>
-                        {categorySuggestions.length > 0 && (
-                          <p className="border-b border-t border-charcoal-950/6 px-5 py-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400">
-                            Products
-                          </p>
-                        )}
-                        {productSuggestions.map((p) => (
-                          <Link
-                            key={p._id}
-                            to={`/products/${p.slug}`}
-                            onClick={() => { setSearchOpen(false); setQuery(""); }}
-                            className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-beige-100"
-                          >
-                            <img
-                              src={p.images[0]}
-                              alt={p.name}
-                              className="h-10 w-10 rounded-lg object-cover"
-                            />
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-charcoal-950">{p.name}</p>
-                              <p className="text-xs text-stone-500">
-                                {p.category}
-                                {p.productCode && <span className="ml-2 font-mono text-[10px] text-stone-400">{p.productCode}</span>}
-                              </p>
-                            </div>
-                            <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-stone-300" />
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Footer: view all link */}
-                    <div className="border-t border-charcoal-950/6 px-5 py-3">
-                      <Link
-                        to={`/products?q=${encodeURIComponent(query)}`}
-                        onClick={() => { setSearchOpen(false); setQuery(""); }}
-                        className="flex items-center gap-1.5 text-xs font-medium text-copper-600 hover:text-copper-700"
-                      >
-                        View all results for "{query}" <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </header>
 
     {/* Mobile drawer — portaled into document.body so it is completely

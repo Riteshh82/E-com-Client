@@ -12,7 +12,7 @@ import {
 import { Button } from "../../components/ui/Button";
 import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
 import { CategoryCard, CategoryCardSkeleton, BulkOrderCTA } from "../../components/site/Misc";
-import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
+import { apiGetProducts, apiGetCategories, apiGetNewlyAddeds, type ApiProduct, type ApiCategory, type ApiNewlyAdded } from "../../api";
 
 const features = [
   {
@@ -58,15 +58,17 @@ export default function Home() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
 
   useEffect(() => {
+    apiGetNewlyAddeds().then(setNewlyAddeds).catch(() => {});
     apiGetProducts({ featured: "true", status: "Published" })
       .then((r) => setFeatured(r.products))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingProducts(false));
     apiGetCategories()
       .then(setCategories)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingCategories(false));
   }, []);
 
@@ -83,7 +85,7 @@ export default function Home() {
           <div className="relative z-10 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-copper-500/20 bg-copper-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-copper-700">
               <span className="h-1.5 w-1.5 animate-pulse-copper rounded-full bg-copper-500" />
-              Architectural Copper — Crafted for Modern Interiors
+              Building Better Spaces with Next Steel Innovation
             </span>
 
             <h1 className="mt-7 font-display text-5xl leading-[1.05] text-charcoal-950 sm:text-6xl lg:text-[3.5rem] xl:text-[4rem]">
@@ -178,6 +180,41 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── NewlyAddeds / Newly Added Products ── */}
+      {newlyAddeds.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-4xl text-charcoal-950">
+              Newly Added <span className="font-bold underline decoration-copper-500 underline-offset-4">Products</span>
+            </h2>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            {newlyAddeds.map((b, i) => {
+              // If total is odd, the last item spans full width
+              const isLastAndOdd = newlyAddeds.length % 2 !== 0 && i === newlyAddeds.length - 1;
+              
+              return (
+                <Link
+                  key={b._id}
+                  to={`/products?category=${b.categorySlug}`}
+                  className={`group relative block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-lg ${isLastAndOdd ? "md:col-span-2" : ""}`}
+                >
+                  {/* Keep an aspect ratio to avoid layout shifts, but full width */}
+                  <div className={`relative w-full overflow-hidden ${isLastAndOdd ? "aspect-[21/9]" : "aspect-[16/9]"}`}>
+                    <img 
+                      src={b.imageUrl} 
+                      alt="Promotional NewlyAdded" 
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* ── Featured Products ── */}
       <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
         <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
@@ -234,10 +271,10 @@ export default function Home() {
             {loadingCategories
               ? Array.from({ length: 3 }).map((_, i) => <CategoryCardSkeleton key={i} />)
               : categories.slice(0, 3).map((c, i) => (
-                  <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
-                    <CategoryCard category={c} />
-                  </div>
-                ))
+                <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
+                  <CategoryCard category={c} />
+                </div>
+              ))
             }
           </div>
         </div>

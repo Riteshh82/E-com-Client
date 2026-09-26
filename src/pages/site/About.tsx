@@ -62,7 +62,7 @@ export default function About() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1622467827417-bec7da96f1ba?auto=format&fit=crop&w=1600&q=85"
+            src="/About_us.jpg"
             alt="Copper texture background"
             className="h-full w-full object-cover"
           />

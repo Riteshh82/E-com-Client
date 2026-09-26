@@ -5,6 +5,7 @@ import {
   FolderTree,
   ClipboardList,
   MessageSquare,
+  Image,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -12,6 +13,7 @@ const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
+  { to: "/admin/newlyadded", label: "Newly Added", icon: Image },
   { to: "/admin/bulk-orders", label: "Bulk Orders", icon: ClipboardList },
   { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
 ];

@@ -9,6 +9,7 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "all";
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,15 @@ export default function Products() {
       .catch(() => {});
   }, []);
 
-  // Reload products when category or query changes
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [query]);
+
+  // Reload products when category or debounced query changes
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -30,13 +39,13 @@ export default function Products() {
       const cat = categories.find((c) => c.slug === activeCategory);
       if (cat) params.category = cat.name;
     }
-    if (query.trim()) params.q = query.trim();
+    if (debouncedQuery.trim()) params.q = debouncedQuery.trim();
 
     apiGetProducts(params)
       .then((r) => setProducts(r.products))
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [activeCategory, query, categories]);
+  }, [activeCategory, debouncedQuery, categories]);
 
   const activeCategoryName = useMemo(
     () => categories.find((c) => c.slug === activeCategory)?.name,

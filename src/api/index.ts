@@ -45,6 +45,16 @@ export interface ApiCategory {
   updatedAt: string;
 }
 
+export interface ApiNewlyAdded {
+  _id: string;
+  imageUrl: string;
+  categorySlug: string;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type InquiryStatus =
   | "New"
   | "Contacted"
@@ -313,4 +323,34 @@ export async function apiUpdateSettings(
   data: Partial<ApiSiteSettings>
 ): Promise<ApiSiteSettings> {
   return apiFetch("/settings", { method: "PUT", body: JSON.stringify(data) });
+}
+
+// ── NewlyAddeds ─────────────────────────────────────────────────────────────────
+
+export async function apiGetNewlyAddeds(): Promise<ApiNewlyAdded[]> {
+  return apiFetch("/newlyadded");
+}
+
+export async function apiGetAdminNewlyAddeds(): Promise<ApiNewlyAdded[]> {
+  return apiFetch("/newlyadded/all");
+}
+
+export async function apiCreateNewlyAdded(data: Partial<ApiNewlyAdded>): Promise<ApiNewlyAdded> {
+  return apiFetch("/newlyadded", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiUpdateNewlyAdded(id: string, data: Partial<ApiNewlyAdded>): Promise<ApiNewlyAdded> {
+  return apiFetch(`/newlyadded/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiDeleteNewlyAdded(id: string): Promise<void> {
+  return apiFetch(`/newlyadded/${id}`, { method: "DELETE" });
 }
