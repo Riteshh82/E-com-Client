@@ -3,8 +3,10 @@ import { Plus, Edit2, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { apiGetAdminNewlyAddeds, apiCreateNewlyAdded, apiUpdateNewlyAdded, apiDeleteNewlyAdded, apiGetCategories, type ApiNewlyAdded, type ApiCategory } from "../../api";
 import { Button } from "../../components/ui/Button";
 
+const loadedAdminNewlyAddedImages = new Set<string>();
+
 function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(() => loadedAdminNewlyAddedImages.has(src));
   return (
     <div className="relative h-40 w-full bg-beige-100">
       {!loaded && <div className="absolute inset-0 skeleton-shimmer" />}
@@ -12,7 +14,10 @@ function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
         src={src}
         alt={alt}
         loading="lazy"
-        onLoad={() => setLoaded(true)}
+        onLoad={() => {
+          loadedAdminNewlyAddedImages.add(src);
+          setLoaded(true);
+        }}
         className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>

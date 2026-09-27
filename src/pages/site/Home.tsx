@@ -61,15 +61,28 @@ export default function Home() {
   const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
 
   useEffect(() => {
-    apiGetNewlyAddeds().then(setNewlyAddeds).catch(() => {});
-    apiGetProducts({ featured: "true", status: "Published" })
-      .then((r) => setFeatured(r.products))
-      .catch(() => { })
-      .finally(() => setLoadingProducts(false));
-    apiGetCategories()
-      .then(setCategories)
-      .catch(() => { })
-      .finally(() => setLoadingCategories(false));
+    let isMounted = true;
+    apiGetNewlyAddeds((data) => { if (isMounted) setNewlyAddeds(data); })
+      .then((data) => { if (isMounted) setNewlyAddeds(data); })
+      .catch(() => {});
+      
+    apiGetProducts({ featured: "true", status: "Published" }, (r) => { if (isMounted) setFeatured(r.products); })
+      .then((r) => {
+        if (!isMounted) return;
+        setFeatured(r.products);
+        setLoadingProducts(false);
+      })
+      .catch(() => { if (isMounted) setLoadingProducts(false); });
+      
+    apiGetCategories((data) => { if (isMounted) setCategories(data); })
+      .then((data) => {
+        if (!isMounted) return;
+        setCategories(data);
+        setLoadingCategories(false);
+      })
+      .catch(() => { if (isMounted) setLoadingCategories(false); });
+
+    return () => { isMounted = false; };
   }, []);
 
   return (

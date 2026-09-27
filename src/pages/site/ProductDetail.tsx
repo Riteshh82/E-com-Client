@@ -118,21 +118,31 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!slug) return;
+    let isMounted = true;
     setLoading(true);
     setNotFound(false);
-    setProduct(null);
-    setRelated([]);
 
-    apiGetProduct(slug)
+    apiGetProduct(slug, (p) => {
+      if (isMounted) setProduct(p);
+      apiGetProducts({ category: p.category, status: "Published" }, (r) => {
+        if (isMounted) setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4));
+      }).catch(() => {});
+    })
       .then((p) => {
+        if (!isMounted) return;
         setProduct(p);
-        // Load related products from same category
-        return apiGetProducts({ category: p.category, status: "Published" }).then((r) =>
-          setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4))
-        );
+        return apiGetProducts({ category: p.category, status: "Published" }).then((r) => {
+          if (isMounted) setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4));
+        });
       })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (isMounted) setNotFound(true);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => { isMounted = false; };
   }, [slug]);
 
   if (loading) {
@@ -204,11 +214,29 @@ export default function ProductDetail() {
 
             {/* Price & Product Code */}
             <div className="mt-4 flex flex-wrap items-center gap-4">
-              {product.price > 0 && (
-                <span className="font-display text-2xl font-semibold text-copper-600">
-                  ₹{product.price.toLocaleString("en-IN")}
-                </span>
-              )}
+              {(() => {
+                const sellingPrice = product.sellingPrice ?? product.price ?? 0;
+                const mrp = product.mrp ?? 0;
+                const hasDiscount = mrp > 0 && sellingPrice > 0 && mrp > sellingPrice;
+
+                return sellingPrice > 0 ? (
+                  <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+                    {hasDiscount && (
+                      <span className="inline-flex items-center rounded bg-green-50 px-2 py-1 text-xs font-bold tracking-widest text-green-600">
+                        ↓ {Math.round(((mrp - sellingPrice) / mrp) * 100)}%
+                      </span>
+                    )}
+                    {hasDiscount && (
+                      <span className="text-lg font-medium text-stone-400 line-through decoration-stone-300">
+                        ₹{mrp.toLocaleString("en-IN")}
+                      </span>
+                    )}
+                    <span className="font-display text-2xl font-semibold text-copper-600">
+                      ₹{sellingPrice.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
               {product.productCode && (
                 <span className="rounded-full border border-charcoal-950/10 bg-beige-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-stone-500">
                   Code: {product.productCode}

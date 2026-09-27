@@ -14,8 +14,10 @@ import { Modal, ConfirmDialog } from "../../components/ui/Overlay";
 import { useToast } from "../../context/ToastContext";
 import { slugify } from "../../lib/utils";
 
+const loadedAdminCategoryImages = new Set<string>();
+
 function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(() => loadedAdminCategoryImages.has(src));
   return (
     <div className="relative h-full w-full bg-beige-100">
       {!loaded && <div className="absolute inset-0 skeleton-shimmer" />}
@@ -23,7 +25,10 @@ function AdminCategoryImage({ src, alt }: { src: string, alt: string }) {
         src={src}
         alt={alt}
         loading="lazy"
-        onLoad={() => setLoaded(true)}
+        onLoad={() => {
+          loadedAdminCategoryImages.add(src);
+          setLoaded(true);
+        }}
         className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
       />
     </div>

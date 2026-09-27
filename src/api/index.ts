@@ -21,6 +21,8 @@ export interface ApiProduct {
   };
   finishes: string[];
   price: number;
+  mrp?: number;
+  sellingPrice?: number;
   productCode: string;
   amazonUrl: string;
   flipkartUrl: string;
@@ -166,18 +168,82 @@ export async function apiLogin(
   });
 }
 
+// ── Smart Cache System ────────────────────────────────────────────────────────
+
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const pendingRequests = new Map<string, Promise<any>>();
+
+/**
+ * Smart caching wrapper.
+ * Returns cached data immediately if available.
+ * If data is stale, triggers a background fetch and calls onRefresh with fresh data.
+ */
+async function cachedFetch<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  onRefresh?: (data: T) => void,
+  ttlMs = 2 * 60 * 1000 // 2 minutes TTL
+): Promise<T> {
+  const cached = apiCache.get(key);
+  const now = Date.now();
+
+  const doFetch = async () => {
+    if (pendingRequests.has(key)) return pendingRequests.get(key)!;
+    const promise = fetcher().then((data) => {
+      apiCache.set(key, { data, timestamp: Date.now() });
+      pendingRequests.delete(key);
+      return data;
+    }).catch(err => {
+      pendingRequests.delete(key);
+      throw err;
+    });
+    pendingRequests.set(key, promise);
+    return promise;
+  };
+
+  if (cached) {
+    if (now - cached.timestamp < ttlMs) {
+      return cached.data as T;
+    }
+    // Stale: background refresh
+    doFetch().then((newData) => {
+      if (onRefresh) onRefresh(newData);
+    }).catch(() => {});
+    return cached.data as T;
+  }
+
+  return doFetch();
+}
+
+export function clearApiCache(prefix?: string) {
+  if (!prefix) {
+    apiCache.clear();
+  } else {
+    for (const key of apiCache.keys()) {
+      if (key.startsWith(prefix)) apiCache.delete(key);
+    }
+  }
+}
+
 // ── Products ─────────────────────────────────────────────────────────────────
 
 export async function apiGetProducts(
-  params?: Record<string, string>
+  params?: Record<string, string>,
+  onRefresh?: (data: { products: ApiProduct[]; total: number; page: number; limit: number }) => void
 ): Promise<{ products: ApiProduct[]; total: number; page: number; limit: number }> {
   const qs = params ? `?${new URLSearchParams(params)}` : "";
-  return apiFetch(`/products${qs}`);
+  return cachedFetch(
+    `products:${qs}`,
+    () => apiFetch(`/products${qs}`),
+    onRefresh
+  );
 }
 
-/** Fetch a single product by its slug (public). */
-export async function apiGetProduct(slug: string): Promise<ApiProduct> {
-  return apiFetch(`/products/${slug}`);
+export async function apiGetProduct(
+  slug: string,
+  onRefresh?: (data: ApiProduct) => void
+): Promise<ApiProduct> {
+  return cachedFetch(`product:${slug}`, () => apiFetch(`/products/${slug}`), onRefresh);
 }
 
 /** Fetch a single product by its MongoDB _id (admin edit). */
@@ -207,41 +273,55 @@ export async function apiTrackMarketplaceClick(
 export async function apiCreateProduct(
   data: Partial<ApiProduct>
 ): Promise<ApiProduct> {
-  return apiFetch("/products", { method: "POST", body: JSON.stringify(data) });
+  const res = await apiFetch<ApiProduct>("/products", { method: "POST", body: JSON.stringify(data) });
+  clearApiCache("products");
+  return res;
 }
 
 export async function apiUpdateProduct(
   id: string,
   data: Partial<ApiProduct>
 ): Promise<ApiProduct> {
-  return apiFetch(`/products/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  const res = await apiFetch<ApiProduct>(`/products/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  clearApiCache("product");
+  return res;
 }
 
 export async function apiDeleteProduct(id: string): Promise<{ message: string }> {
-  return apiFetch(`/products/${id}`, { method: "DELETE" });
+  const res = await apiFetch<{ message: string }>(`/products/${id}`, { method: "DELETE" });
+  clearApiCache("product");
+  return res;
 }
 
 // ── Categories ───────────────────────────────────────────────────────────────
 
-export async function apiGetCategories(): Promise<ApiCategory[]> {
-  return apiFetch("/categories");
+export async function apiGetCategories(
+  onRefresh?: (data: ApiCategory[]) => void
+): Promise<ApiCategory[]> {
+  return cachedFetch("categories", () => apiFetch("/categories"), onRefresh, 1000 * 60 * 60 * 24); // 24h
 }
 
 export async function apiCreateCategory(
   data: Partial<ApiCategory>
 ): Promise<ApiCategory> {
-  return apiFetch("/categories", { method: "POST", body: JSON.stringify(data) });
+  const res = await apiFetch<ApiCategory>("/categories", { method: "POST", body: JSON.stringify(data) });
+  clearApiCache("categories");
+  return res;
 }
 
 export async function apiUpdateCategory(
   id: string,
   data: Partial<ApiCategory>
 ): Promise<ApiCategory> {
-  return apiFetch(`/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  const res = await apiFetch<ApiCategory>(`/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  clearApiCache("categories");
+  return res;
 }
 
 export async function apiDeleteCategory(id: string): Promise<{ message: string }> {
-  return apiFetch(`/categories/${id}`, { method: "DELETE" });
+  const res = await apiFetch<{ message: string }>(`/categories/${id}`, { method: "DELETE" });
+  clearApiCache("categories");
+  return res;
 }
 
 // ── Bulk Orders ───────────────────────────────────────────────────────────────
@@ -323,42 +403,55 @@ export interface ApiSiteSettings {
   notifyWeeklySummary: boolean;
 }
 
-export async function apiGetSettings(): Promise<ApiSiteSettings> {
-  return apiFetch("/settings");
+export async function apiGetSettings(
+  onRefresh?: (data: ApiSiteSettings) => void
+): Promise<ApiSiteSettings> {
+  return cachedFetch("settings", () => apiFetch("/settings"), onRefresh, 1000 * 60 * 60 * 24);
 }
 
 export async function apiUpdateSettings(
   data: Partial<ApiSiteSettings>
 ): Promise<ApiSiteSettings> {
-  return apiFetch("/settings", { method: "PUT", body: JSON.stringify(data) });
+  const res = await apiFetch<ApiSiteSettings>("/settings", { method: "PUT", body: JSON.stringify(data) });
+  clearApiCache("settings");
+  return res;
 }
 
 // ── NewlyAddeds ─────────────────────────────────────────────────────────────────
 
-export async function apiGetNewlyAddeds(): Promise<ApiNewlyAdded[]> {
-  return apiFetch("/newlyadded");
+export async function apiGetNewlyAddeds(
+  onRefresh?: (data: ApiNewlyAdded[]) => void
+): Promise<ApiNewlyAdded[]> {
+  return cachedFetch("newlyadded:public", () => apiFetch("/newlyadded"), onRefresh);
 }
 
-export async function apiGetAdminNewlyAddeds(): Promise<ApiNewlyAdded[]> {
-  return apiFetch("/newlyadded/all");
+export async function apiGetAdminNewlyAddeds(
+  onRefresh?: (data: ApiNewlyAdded[]) => void
+): Promise<ApiNewlyAdded[]> {
+  return cachedFetch("newlyadded:admin", () => apiFetch("/newlyadded/all"), onRefresh);
 }
 
 export async function apiCreateNewlyAdded(data: Partial<ApiNewlyAdded>): Promise<ApiNewlyAdded> {
-  return apiFetch("/newlyadded", {
+  const res = await apiFetch<ApiNewlyAdded>("/newlyadded", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+  clearApiCache("newlyadded");
+  return res;
 }
 
 export async function apiUpdateNewlyAdded(id: string, data: Partial<ApiNewlyAdded>): Promise<ApiNewlyAdded> {
-  return apiFetch(`/newlyadded/${id}`, {
+  const res = await apiFetch<ApiNewlyAdded>(`/newlyadded/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+  clearApiCache("newlyadded");
+  return res;
 }
 
 export async function apiDeleteNewlyAdded(id: string): Promise<void> {
-  return apiFetch(`/newlyadded/${id}`, { method: "DELETE" });
+  await apiFetch(`/newlyadded/${id}`, { method: "DELETE" });
+  clearApiCache("newlyadded");
 }

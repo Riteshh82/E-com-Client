@@ -8,8 +8,10 @@ import { useToast } from "../../context/ToastContext";
 import { apiSubmitMessage } from "../../api";
 
 /* ── CategoryCard ── */
+const loadedCategoryImages = new Set<string>();
+
 export function CategoryCard({ category }: { category: ApiCategory }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(() => loadedCategoryImages.has(category.image));
 
   return (
     <Link
@@ -23,7 +25,10 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
         src={category.image}
         alt={category.name}
         loading="lazy"
-        onLoad={() => setImgLoaded(true)}
+        onLoad={() => {
+          loadedCategoryImages.add(category.image);
+          setImgLoaded(true);
+        }}
         className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-107 ${
           imgLoaded ? "opacity-100" : "opacity-0"
         }`}

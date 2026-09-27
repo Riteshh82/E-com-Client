@@ -5,14 +5,18 @@ import type { ApiProduct } from "../../api";
 import { Badge } from "../ui/index";
 import { MarketplaceButtons } from "./MarketplaceButtons";
 
+const loadedImages = new Set<string>();
+
 export function ProductCard({ product }: { product: ApiProduct }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
+  const imageSrc = product.images?.[0] || "";
+  const [imgLoaded, setImgLoaded] = useState(() => loadedImages.has(imageSrc));
 
   const imgCallbackRef = useCallback((node: HTMLImageElement | null) => {
-    if (node?.complete) setImgLoaded(true);
-  }, []);
-
-  const imageSrc = product.images?.[0];
+    if (node?.complete) {
+      loadedImages.add(imageSrc);
+      setImgLoaded(true);
+    }
+  }, [imageSrc]);
 
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-950/8 bg-white transition-all duration-500 hover:-translate-y-1.5 hover:border-copper-400/50 hover:shadow-[0_24px_48px_-12px_rgba(23,20,15,0.18),0_0_0_1px_rgba(184,112,62,0.2)]">
@@ -33,7 +37,11 @@ export function ProductCard({ product }: { product: ApiProduct }) {
             ref={imgCallbackRef}
             src={imageSrc}
             alt={product.name}
-            onLoad={() => setImgLoaded(true)}
+            loading="lazy"
+            onLoad={() => {
+              loadedImages.add(imageSrc);
+              setImgLoaded(true);
+            }}
             className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           />
         ) : (
@@ -68,13 +76,31 @@ export function ProductCard({ product }: { product: ApiProduct }) {
 
         {/* Price & Code row */}
         <div className="mt-1 sm:mt-2 flex items-center justify-between gap-1 sm:gap-2">
-          {product.price > 0 ? (
-            <span className="font-display text-base sm:text-lg font-semibold text-copper-600">
-              ₹{product.price.toLocaleString("en-IN")}
-            </span>
-          ) : (
-            <span />
-          )}
+          {(() => {
+            const sellingPrice = product.sellingPrice ?? product.price ?? 0;
+            const mrp = product.mrp ?? 0;
+            const hasDiscount = mrp > 0 && sellingPrice > 0 && mrp > sellingPrice;
+
+            return sellingPrice > 0 ? (
+              <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+                {hasDiscount && (
+                  <span className="inline-flex items-center rounded-sm bg-green-50 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-widest text-green-600">
+                    ↓ {Math.round(((mrp - sellingPrice) / mrp) * 100)}%
+                  </span>
+                )}
+                {hasDiscount && (
+                  <span className="text-xs sm:text-sm font-medium text-stone-400 line-through decoration-stone-300">
+                    ₹{mrp.toLocaleString("en-IN")}
+                  </span>
+                )}
+                <span className="font-display text-base sm:text-lg font-semibold text-copper-600">
+                  ₹{sellingPrice.toLocaleString("en-IN")}
+                </span>
+              </div>
+            ) : (
+              <span />
+            );
+          })()}
           {product.productCode && (
             <span className="shrink-0 rounded-full bg-beige-100 px-1.5 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-stone-500">
               {product.productCode}

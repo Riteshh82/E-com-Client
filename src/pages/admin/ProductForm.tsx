@@ -28,7 +28,8 @@ export default function ProductForm() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
+  const [mrp, setMrp] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
   const [productCode, setProductCode] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
@@ -55,7 +56,8 @@ export default function ProductForm() {
         if (!p) { navigate("/admin/products"); return; }
         setExisting(p);
         setName(p.name);
-        setPrice(p.price != null ? String(p.price) : "");
+        setMrp(p.mrp != null ? String(p.mrp) : p.price != null ? String(p.price) : "");
+        setSellingPrice(p.sellingPrice != null ? String(p.sellingPrice) : p.price != null ? String(p.price) : "");
         setProductCode(p.productCode ?? "");
         setImages(p.images ?? []);
         setFeatured(p.featured);
@@ -124,9 +126,17 @@ export default function ProductForm() {
     if (images.length === 0) {
       errors.images = "At least one product photo is required.";
     }
-    const priceVal = parseFloat(String(fd.get("price") ?? "0"));
-    if (!priceVal || priceVal <= 0) {
-      errors.price = "Price must be greater than ₹0.";
+    const mrpVal = parseFloat(String(fd.get("mrp") ?? "0"));
+    const sellingPriceVal = parseFloat(String(fd.get("sellingPrice") ?? "0"));
+    
+    if (!mrpVal || mrpVal < 0) {
+      errors.mrp = "MRP must be >= ₹0.";
+    }
+    if (!sellingPriceVal || sellingPriceVal < 0) {
+      errors.sellingPrice = "Selling Price must be >= ₹0.";
+    }
+    if (mrpVal > 0 && sellingPriceVal > mrpVal) {
+      errors.sellingPrice = "Selling Price cannot exceed MRP.";
     }
     const categoryVal = String(fd.get("category") ?? "").trim();
     if (!categoryVal) {
@@ -159,7 +169,8 @@ export default function ProductForm() {
       category: String(fd.get("category") ?? ""),
       shortDescription: String(fd.get("shortDescription") ?? ""),
       fullDescription: String(fd.get("fullDescription") ?? ""),
-      price: parseFloat(String(fd.get("price") ?? "0")) || 0,
+      mrp: parseFloat(String(fd.get("mrp") ?? "0")) || 0,
+      sellingPrice: parseFloat(String(fd.get("sellingPrice") ?? "0")) || 0,
       productCode: String(fd.get("productCode") ?? "").trim(),
       images,
       specifications: {
@@ -249,20 +260,44 @@ export default function ProductForm() {
               )}
             </div>
             <div />
-            <div id="field-price">
+            <div id="field-mrp">
               <Input
-                label="Price (₹) *"
-                name="price"
+                label="MRP (₹) *"
+                name="mrp"
                 type="number"
                 min="0"
                 step="0.01"
-                value={price}
-                onChange={(e) => { setPrice(e.target.value); setValidationErrors((prev) => ({ ...prev, price: "" })); }}
+                value={mrp}
+                onChange={(e) => { setMrp(e.target.value); setValidationErrors((prev) => ({ ...prev, mrp: "" })); }}
                 placeholder="e.g. 1999"
               />
-              {validationErrors.price && (
-                <p className="mt-1 text-xs text-red-500">{validationErrors.price}</p>
-              )}
+              {validationErrors.mrp && <p className="mt-1 text-xs text-red-500">{validationErrors.mrp}</p>}
+            </div>
+            <div id="field-sellingPrice">
+              <Input
+                label="Selling Price (₹) *"
+                name="sellingPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                value={sellingPrice}
+                onChange={(e) => { setSellingPrice(e.target.value); setValidationErrors((prev) => ({ ...prev, sellingPrice: "" })); }}
+                placeholder="e.g. 1499"
+              />
+              {validationErrors.sellingPrice && <p className="mt-1 text-xs text-red-500">{validationErrors.sellingPrice}</p>}
+            </div>
+            <div className="flex flex-col justify-center pt-2">
+              <label className="text-sm font-medium text-charcoal-950">Calculated Discount</label>
+              <div className="mt-1 text-sm font-medium text-copper-600 h-[42px] flex items-center">
+                {(() => {
+                  const m = parseFloat(mrp);
+                  const s = parseFloat(sellingPrice);
+                  if (m > 0 && s >= 0 && m > s) {
+                    return `${Math.round(((m - s) / m) * 100)}% OFF (Save ₹${(m - s).toFixed(2)})`;
+                  }
+                  return "No discount";
+                })()}
+              </div>
             </div>
             <div id="field-productCode">
               <Input

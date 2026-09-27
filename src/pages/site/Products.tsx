@@ -32,6 +32,7 @@ export default function Products() {
 
   // Reload products when category or debounced query changes
   useEffect(() => {
+    let isMounted = true;
     setLoading(true);
     setError(null);
     const params: Record<string, string> = { status: "Published" };
@@ -41,10 +42,19 @@ export default function Products() {
     }
     if (debouncedQuery.trim()) params.q = debouncedQuery.trim();
 
-    apiGetProducts(params)
-      .then((r) => setProducts(r.products))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+    apiGetProducts(params, (r) => { if (isMounted) setProducts(r.products); })
+      .then((r) => {
+        if (!isMounted) return;
+        setProducts(r.products);
+        setLoading(false);
+      })
+      .catch((e: Error) => {
+        if (!isMounted) return;
+        setError(e.message);
+        setLoading(false);
+      });
+      
+    return () => { isMounted = false; };
   }, [activeCategory, debouncedQuery, categories]);
 
   const activeCategoryName = useMemo(
