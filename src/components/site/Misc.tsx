@@ -7,7 +7,7 @@ import { Input, Textarea } from "../ui/index";
 import { useToast } from "../../context/ToastContext";
 import { apiSubmitMessage } from "../../api";
 
-/* ── CategoryCard ── */
+/* ── CategoryCard (circular icon layout) ── */
 const loadedCategoryImages = new Set<string>();
 
 export function CategoryCard({ category }: { category: ApiCategory }) {
@@ -16,64 +16,58 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
   return (
     <Link
       to={`/products?category=${category.slug}`}
-      className="group relative flex h-[460px] flex-col justify-end overflow-hidden rounded-2xl"
+      className="cat-item group flex flex-col items-center gap-3 text-center focus-visible:outline-none"
+      aria-label={category.name}
     >
-      {!imgLoaded && (
-        <div className="absolute inset-0 skeleton-shimmer" />
-      )}
-      <img
-        src={category.image}
-        alt={category.name}
-        loading="lazy"
-        onLoad={() => {
-          loadedCategoryImages.add(category.image);
-          setImgLoaded(true);
+      {/* Circle container */}
+      <div
+        className="cat-circle relative flex items-center justify-center rounded-full bg-white"
+        style={{
+          width: "clamp(96px, 12vw, 140px)",
+          height: "clamp(96px, 12vw, 140px)",
+          border: "1.5px solid rgba(184, 112, 62, 0.25)",
+          boxShadow: "0 2px 12px 0 rgba(23,20,15,0.06), 0 0 0 4px rgba(255,255,255,0.8)",
+          willChange: "transform",
         }}
-        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-107 ${
-          imgLoaded ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/95 via-charcoal-950/40 to-transparent transition-opacity duration-400 group-hover:from-charcoal-950/80" />
-
-      {/* Copper accent line */}
-      <div className="absolute left-0 top-0 h-1 w-0 bg-gradient-to-r from-copper-400 to-copper-600 transition-all duration-500 group-hover:w-full" />
-
-      <div className="relative p-7">
-        {/* Product count badge */}
-        <span className="mb-3 inline-flex items-center rounded-full bg-copper-500/20 px-3 py-1 text-[11px] font-medium text-copper-200 backdrop-blur-sm">
-          {category.productCount} product{category.productCount !== 1 ? "s" : ""}
-        </span>
-
-        <h3 className="font-display text-2xl text-cream-50 transition-transform duration-300 group-hover:-translate-y-1">
-          {category.name}
-        </h3>
-        <p className="mt-2 max-w-xs text-sm leading-relaxed text-stone-300 opacity-80 transition-opacity group-hover:opacity-100">
-          {category.description}
-        </p>
-        <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-copper-300 transition-all duration-300 group-hover:gap-3 group-hover:text-copper-200">
-          Explore
-          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:rotate-45" />
-        </span>
+      >
+        {!imgLoaded && (
+          <div className="absolute inset-0 rounded-full skeleton-shimmer" />
+        )}
+        <img
+          src={category.image}
+          alt={category.name}
+          loading="lazy"
+          onLoad={() => {
+            loadedCategoryImages.add(category.image);
+            setImgLoaded(true);
+          }}
+          className={`rounded-full object-contain p-3 transition-opacity duration-500 ${
+            imgLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ width: "82%", height: "82%" }}
+        />
       </div>
+
+      {/* Label */}
+      <span
+        className="cat-label max-w-[120px] text-center text-sm font-semibold leading-snug text-charcoal-950"
+        style={{ wordBreak: "break-word", hyphens: "auto" }}
+      >
+        {category.name}
+      </span>
     </Link>
   );
 }
 
-/** Shimmer skeleton that matches the CategoryCard layout (460px tall card) */
+/** Shimmer skeleton matching the new circular category layout */
 export function CategoryCardSkeleton() {
   return (
-    <div className="relative flex h-[460px] flex-col justify-end overflow-hidden rounded-2xl">
-      {/* Full-card shimmer background */}
-      <div className="absolute inset-0 skeleton-shimmer" />
-      {/* Fake bottom text area */}
-      <div className="relative p-7 space-y-3">
-        <div className="h-5 w-20 rounded-full skeleton-shimmer opacity-60" />
-        <div className="h-7 w-48 rounded-lg skeleton-shimmer opacity-60" />
-        <div className="h-4 w-56 rounded-lg skeleton-shimmer opacity-60" />
-        <div className="h-4 w-36 rounded-lg skeleton-shimmer opacity-60" />
-        <div className="h-4 w-20 rounded-full skeleton-shimmer opacity-60 mt-2" />
-      </div>
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className="rounded-full skeleton-shimmer"
+        style={{ width: "clamp(96px, 12vw, 140px)", height: "clamp(96px, 12vw, 140px)" }}
+      />
+      <div className="h-4 w-20 rounded-full skeleton-shimmer" />
     </div>
   );
 }
@@ -106,9 +100,9 @@ export function BulkOrderCTA() {
               <span className="copper-shimmer-text">Large Project?</span>
             </h2>
             <p className="mt-5 text-base leading-relaxed text-stone-400">
-              Whether you're an architect, contractor, interior designer, builder or business,
-              talk to us about bulk copper tile requirements. We support projects of all scales —
-              from a single restaurant to a large commercial facade.
+              Whether you're a retailer, contractor, interior designer or business,
+              talk to us about bulk requirements for kitchen racks, trolleys, shelves and other
+              storage products. We support orders of all sizes.
             </p>
             <ul className="mt-7 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
               {bullets.map((point) => (

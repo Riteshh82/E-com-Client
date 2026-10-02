@@ -72,8 +72,8 @@ export default function Products() {
           </span>
           <h1 className="mt-2 font-display text-5xl text-charcoal-950">Products</h1>
           <p className="mt-3 max-w-xl text-stone-500">
-            Browse our full range of copper tiles, panels and architectural surfaces — each
-            crafted to bring warmth and character to any space.
+            Browse our full range of kitchen racks, trolleys, shelves, organizers and home storage
+            products — built for everyday use in modern homes and businesses.
           </p>
         </div>
       </section>

@@ -1,22 +1,22 @@
-import { ShieldCheck, Gem, Building2, Layers, Award, Users, MapPin } from "lucide-react";
+import { ShieldCheck, Wrench, Layers, Building2, Award, Users, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 
 const pillars = [
   {
     icon: ShieldCheck,
-    title: "Quality Commitment",
-    desc: "Every tile is inspected for gauge, finish and consistency before it leaves the workshop.",
+    title: "Quality Construction",
+    desc: "Every product is built for durability — checked for finish and strength before it leaves the warehouse.",
   },
   {
-    icon: Gem,
-    title: "Design-Led Products",
-    desc: "Finishes developed with architects and interior designers, not mass-market defaults.",
+    icon: Wrench,
+    title: "Functional Design",
+    desc: "Designed for practical daily use, not just aesthetics. Space-saving and easy to install.",
   },
   {
     icon: Layers,
-    title: "Full Product Range",
-    desc: "From smooth classic tiles to facade-grade architectural surfaces.",
+    title: "Wide Product Range",
+    desc: "From kitchen racks and trolleys to bathroom shelves and utility stands.",
   },
   {
     icon: Building2,
@@ -27,31 +27,31 @@ const pillars = [
 
 const stats = [
   { value: "2018", label: "Year Founded", icon: Award },
-  { value: "500+", label: "Projects Done", icon: MapPin },
-  { value: "8+", label: "Copper Finishes", icon: Layers },
-  { value: "B2B", label: "Trade Support", icon: Users },
+  { value: "500+", label: "Happy Customers", icon: Users },
+  { value: "10+", label: "Product Categories", icon: Layers },
+  { value: "B2B", label: "Trade Support", icon: MapPin },
 ];
 
 const timeline = [
   {
     year: "2018",
-    title: "Founded in Mumbai",
-    desc: "Started with a single copper tile design, crafted by hand in a small workshop in Lower Parel.",
+    title: "Founded",
+    desc: "Next Steel Innovation started with a focus on practical kitchen storage products for everyday Indian homes.",
   },
   {
     year: "2020",
-    title: "Expanded to 6 Collections",
-    desc: "Launched our full range — from classic polished tiles to hammered architectural panels.",
+    title: "Expanded Product Range",
+    desc: "Grew from kitchen racks to a full range — trolleys, shelves, baskets, utility stands and bathroom storage.",
   },
   {
     year: "2022",
-    title: "Marketplace Partnerships",
-    desc: "Joined Amazon and Flipkart to make premium copper surfaces accessible across India.",
+    title: "Marketplace Presence",
+    desc: "Joined Amazon, Flipkart and Myntra to make our products accessible across India.",
   },
   {
     year: "2024",
     title: "B2B Programme",
-    desc: "Launched dedicated bulk ordering for architects, contractors and interior designers.",
+    desc: "Launched dedicated bulk ordering for retailers, contractors and interior designers.",
   },
 ];
 
@@ -63,7 +63,7 @@ export default function About() {
         <div className="absolute inset-0">
           <img
             src="/About_us.jpg"
-            alt="Copper texture background"
+            alt="Kitchen storage and organisation products"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950/85 via-charcoal-950/70 to-copper-900/50" />
@@ -76,8 +76,8 @@ export default function About() {
             About Next Steel Innovation
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-300">
-            We design and produce copper tiles and architectural surfaces for spaces that are
-            meant to be remembered — bringing warmth, craft and character to modern interiors.
+            We supply practical and durable kitchen and home storage solutions designed for modern
+            Indian homes and businesses — helping everyday spaces stay organised and functional.
           </p>
         </div>
       </section>
@@ -104,15 +104,15 @@ export default function About() {
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">Who We Are</span>
             <h2 className="mt-3 font-display text-4xl text-charcoal-950">Our Story</h2>
             <p className="mt-5 leading-relaxed text-stone-600">
-              Next Steel Innovation began with a simple observation: copper, one of the oldest materials used by
-              architects and craftspeople, was rarely available in a form that felt considered rather
-              than decorative. We set out to change that — building a focused range of copper tiles,
-              panels and surfaces engineered for how modern interiors are actually designed and built.
+              Next Steel Innovation was founded with a clear purpose: to make high-quality kitchen
+              racks, trolleys and home storage products accessible and affordable for Indian homes
+              and businesses. We noticed a gap between cheap, flimsy products and expensive imported
+              alternatives — so we set out to fill it with well-built, practically designed solutions.
             </p>
             <p className="mt-4 leading-relaxed text-stone-600">
-              Every product in our range is developed in close collaboration with architects and
-              interior designers — people who know that the difference between a good space and a
-              great one often comes down to the quality of a single material decision.
+              Every product in our range is developed with the real user in mind — someone who wants
+              a tidier kitchen, a more organised bathroom, or a smarter utility space without the
+              hassle of complex assembly or overpriced designs.
             </p>
 
             <Link to="/products" className="mt-8 inline-block">
@@ -150,9 +150,9 @@ export default function About() {
           <span className="text-xs font-semibold uppercase tracking-widest text-copper-400">Vision</span>
           <h2 className="mt-3 font-display text-4xl text-cream-50 sm:text-5xl">Our Vision</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-400">
-            To make premium copper surfaces a practical, specifiable material for architects,
-            interior designers and homeowners — not a rare or bespoke indulgence, but a considered
-            choice available at the scale a project needs.
+            To make practical, durable kitchen and home storage products available to every Indian
+            household and business — not as a luxury, but as an accessible everyday essential that
+            genuinely improves how people use their spaces.
           </p>
         </div>
       </section>
@@ -186,10 +186,10 @@ export default function About() {
         <div className="flex flex-col gap-8 rounded-3xl border border-copper-500/20 bg-gradient-to-br from-copper-50 to-white p-10 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="font-display text-2xl text-charcoal-950">
-              Ready to work with us on a project?
+              Looking to order in bulk?
             </h2>
             <p className="mt-2 text-stone-500">
-              Our B2B team supports architects, designers and contractors with dedicated pricing and project support.
+              Our team supports retailers, designers and contractors with dedicated pricing and project enquiries.
             </p>
           </div>
           <Link to="/bulk-orders" className="shrink-0">

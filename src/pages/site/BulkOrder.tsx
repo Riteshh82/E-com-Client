@@ -10,22 +10,22 @@ const benefits = [
   {
     icon: Package,
     title: "Bulk Quantities",
-    desc: "From 100 to 10,000+ tiles — we fulfil projects of any scale.",
+    desc: "From small retail orders to large-scale procurement — we fulfil projects of any size.",
   },
   {
     icon: Palette,
-    title: "Custom Finishes",
-    desc: "Special finishes and dimensions available for large orders.",
+    title: "Wide Product Range",
+    desc: "Kitchen racks, trolleys, shelves, baskets, utility stands and more available in bulk.",
   },
   {
     icon: Building2,
     title: "Project Support",
-    desc: "Dedicated account manager for commercial projects.",
+    desc: "Dedicated account manager for commercial and institutional orders.",
   },
   {
     icon: Users,
     title: "Trade Pricing",
-    desc: "Preferential rates for architects, designers and contractors.",
+    desc: "Preferential rates for retailers, designers, contractors and bulk buyers.",
   },
 ];
 
@@ -100,8 +100,8 @@ export default function BulkOrder() {
           <div className="lg:col-span-2">
             <h2 className="font-display text-2xl text-charcoal-950">Why order bulk with us?</h2>
             <p className="mt-3 text-sm leading-relaxed text-stone-500">
-              We work with architects, contractors, interior designers and builders across India
-              to deliver copper surfaces at scale.
+              We work with retailers, contractors and businesses across India to supply kitchen
+              and home storage products at competitive prices and reliable lead times.
             </p>
 
             <div className="mt-8 space-y-5">
@@ -121,8 +121,8 @@ export default function BulkOrder() {
             {/* Image */}
             <div className="mt-8 aspect-[4/3] overflow-hidden rounded-2xl shadow-lg">
               <img
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
-                alt="Copper tile bulk installation"
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80"
+                alt="Kitchen storage products in bulk"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -174,7 +174,7 @@ export default function BulkOrder() {
                     ))}
                     <option value="Other">Other / Not sure yet</option>
                   </Select>
-                  <Input id="bulk-quantity" name="quantity" label="Quantity Required" placeholder="e.g. 500 tiles / 2000 sq ft" required />
+                  <Input id="bulk-quantity" name="quantity" label="Quantity Required" placeholder="e.g. 100 units / 500 pieces" required />
                   <Select id="bulk-project-type" name="projectType" label="Project Type" defaultValue="">
                     <option value="">Select project type</option>
                     <option>Residential</option>

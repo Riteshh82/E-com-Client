@@ -92,8 +92,8 @@ export function Footer() {
             <span className="font-display text-2xl tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
           </Link>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-charcoal-400">
-            Premium architectural surfaces crafted for modern interiors.
-            Elevating spaces with timeless design and unmatched quality.
+            Practical kitchen storage and home utility solutions designed for
+            organised, functional everyday spaces.
           </p>
 
             {/* Contact items */}

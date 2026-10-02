@@ -17,39 +17,39 @@ import { apiGetProducts, apiGetCategories, apiGetNewlyAddeds, type ApiProduct, t
 const features = [
   {
     icon: ShieldCheck,
-    title: "Premium Quality",
-    desc: "99.9% pure copper, finished by hand in every piece.",
+    title: "Durable Quality",
+    desc: "Sturdy steel construction built to handle everyday kitchen and home use.",
   },
   {
     icon: Sparkles,
-    title: "Modern Designs",
-    desc: "Curated finishes developed with leading architects.",
+    title: "Practical Design",
+    desc: "Every product is designed to maximise space and simplify organisation.",
   },
   {
     icon: PackageCheck,
     title: "Bulk Orders",
-    desc: "Built for contractors, designers and large-scale projects.",
+    desc: "Built for retailers, contractors and large-scale procurement.",
   },
   {
     icon: Handshake,
     title: "Marketplace Partners",
-    desc: "Reliably stocked on Amazon & Flipkart.",
+    desc: "Reliably stocked on Amazon, Flipkart and Myntra.",
   },
 ];
 
 const whyPoints = [
-  "99.9% pure copper materials",
-  "Unique hand-finished surface finishes",
-  "8+ signature design options",
-  "Suitable for residential and commercial",
+  "Durable steel and metal construction",
+  "Space-saving designs for modern kitchens",
+  "Wide range of storage and organizer products",
+  "Suitable for residential and commercial use",
   "Bulk quantity support & project pricing",
-  "Reliable Amazon & Flipkart availability",
+  "Available on Amazon, Flipkart & Myntra",
 ];
 
 const stats = [
-  { value: "8+", label: "Copper Finishes" },
-  { value: "20+", label: "Collections" },
-  { value: "500+", label: "Projects Completed" },
+  { value: "50+", label: "Product Variants" },
+  { value: "10+", label: "Categories" },
+  { value: "500+", label: "Happy Customers" },
   { value: "B2B", label: "Bulk Ready" },
 ];
 
@@ -98,33 +98,32 @@ export default function Home() {
           <div className="relative z-10 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-copper-500/20 bg-copper-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-copper-700">
               <span className="h-1.5 w-1.5 animate-pulse-copper rounded-full bg-copper-500" />
-              Building Better Spaces with Next Steel Innovation
+              Kitchen &amp; Home Storage Solutions
             </span>
 
             <h1 className="mt-7 font-display text-5xl leading-[1.05] text-charcoal-950 sm:text-6xl lg:text-[3.5rem] xl:text-[4rem]">
-              Timeless Copper.
+              Smart Storage
               <br />
-              <span className="copper-gradient-text">Designed for</span>
+              <span className="copper-gradient-text">for a Better</span>
               <br />
-              Modern Spaces.
+              Kitchen.
             </h1>
 
             <p className="mt-6 max-w-lg text-base leading-relaxed text-stone-600">
-              Premium copper tiles and architectural surfaces crafted to bring warmth, character
-              and elegance to every space — from intimate residential interiors to grand commercial
-              lobbies.
+              Practical kitchen racks, trolleys, organizers and storage solutions designed to
+              make everyday spaces more functional, tidy and easy to use.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link to="/products">
                 <Button size="lg" className="shadow-lg shadow-copper-500/20">
-                  Explore Products
+                  Shop Products
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/bulk-orders">
+              <Link to="/collections">
                 <Button size="lg" variant="outline">
-                  Request Bulk Quote
+                  Explore Categories
                 </Button>
               </Link>
             </div>
@@ -148,8 +147,8 @@ export default function Home() {
 
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(23,20,15,0.22)]">
               <img
-                src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=85"
-                alt="Premium copper architectural surface in a warm luxury interior"
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=85"
+                alt="Well-organised modern kitchen with storage racks and shelves"
                 className="h-full w-full object-cover"
               />
               {/* Subtle warm overlay */}
@@ -158,8 +157,8 @@ export default function Home() {
 
             {/* Floating cards */}
             <div className="absolute -bottom-5 -left-6 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-5 shadow-2xl sm:block">
-              <p className="font-display text-3xl text-copper-600">8+</p>
-              <p className="mt-0.5 text-xs text-stone-500">Signature copper finishes</p>
+              <p className="font-display text-3xl text-copper-600">50+</p>
+              <p className="mt-0.5 text-xs text-stone-500">Storage product variants</p>
             </div>
 
             <div className="absolute -right-5 top-1/3 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-4 shadow-xl sm:block" style={{ animationDelay: "1s" }}>
@@ -167,7 +166,7 @@ export default function Home() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 <p className="text-xs font-medium text-charcoal-950">Bulk ready</p>
               </div>
-              <p className="mt-1 text-[10px] text-stone-400">For architects & contractors</p>
+              <p className="mt-1 text-[10px] text-stone-400">For retailers &amp; businesses</p>
             </div>
           </div>
         </div>
@@ -193,6 +192,33 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Shop by Categories ── */}
+      <section className="bg-white border-y border-charcoal-950/6">
+        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+          {/* Section heading */}
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-4xl text-charcoal-950">
+              Shop by{" "}
+              <span className="font-bold underline decoration-copper-500 underline-offset-4">Categories</span>
+            </h2>
+            <p className="mt-3 text-stone-500 text-sm">Discover storage and organizer solutions for every room</p>
+          </div>
+
+          {/* Circular category grid */}
+          <div className="grid grid-cols-3 gap-x-4 gap-y-10 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 justify-items-center">
+            {loadingCategories
+              ? Array.from({ length: 8 }).map((_, i) => <CategoryCardSkeleton key={i} />)
+              : categories.map((c, i) => (
+                <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)} flex justify-center`}>
+                  <CategoryCard category={c} />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+
       {/* ── NewlyAddeds / Newly Added Products ── */}
       {newlyAddeds.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
@@ -217,7 +243,7 @@ export default function Home() {
                   <div className={`relative w-full overflow-hidden ${isLastAndOdd ? "aspect-[21/9]" : "aspect-[16/9]"}`}>
                     <img 
                       src={b.imageUrl} 
-                      alt="Promotional NewlyAdded" 
+                      alt="New product collection" 
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
@@ -233,13 +259,13 @@ export default function Home() {
         <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
-              Our Product
+              Our Products
             </span>
             <h2 className="mt-2 font-display text-4xl text-charcoal-950">
-              Best Seller
+              Best Sellers
             </h2>
             <p className="mt-2.5 text-stone-500">
-              Explore our most popular copper designs, each crafted to make a statement.
+              Our most popular kitchen storage and organizer products.
             </p>
           </div>
           <Link
@@ -258,41 +284,7 @@ export default function Home() {
       {/* ── Divider ── */}
       <div className="section-divider mx-auto max-w-7xl px-10" />
 
-      {/* ── Collections ── */}
-      <section className="bg-beige-100/50">
-        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
-                Browse
-              </span>
-              <h2 className="mt-2 font-display text-4xl text-charcoal-950">
-                Shop by Categories
-              </h2>
-              <p className="mt-2.5 text-stone-500">
-                Six curated copper ranges, each engineered for a different feel.
-              </p>
-            </div>
-            <Link
-              to="/collections"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-charcoal-950/15 px-5 py-2.5 text-sm font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
-            >
-              All Categories <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {loadingCategories
-              ? Array.from({ length: 3 }).map((_, i) => <CategoryCardSkeleton key={i} />)
-              : categories.slice(0, 3).map((c, i) => (
-                <div key={c._id} className={`animate-fade-up stagger-${i + 1}`}>
-                  <CategoryCard category={c} />
-                </div>
-              ))
-            }
-          </div>
-        </div>
-      </section>
-
+      
       {/* ── Why Choose Us ── */}
       <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
         <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
@@ -301,17 +293,17 @@ export default function Home() {
             <div className="absolute -left-4 -top-4 h-72 w-72 rounded-full bg-copper-100/60 blur-3xl" />
             <div className="relative aspect-[5/6] overflow-hidden rounded-[2rem] shadow-[0_24px_64px_-12px_rgba(23,20,15,0.18)]">
               <img
-                src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1200&q=85"
-                alt="Premium copper architectural detail"
+                src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=85"
+                alt="Organised kitchen with racks and storage solutions"
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-copper-900/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/10 to-transparent" />
             </div>
             {/* Accent card */}
             <div className="absolute -bottom-6 right-6 rounded-2xl border border-charcoal-950/8 bg-white p-5 shadow-2xl">
               <p className="text-xs text-stone-500">Est.</p>
               <p className="font-display text-2xl text-charcoal-950">2018</p>
-              <p className="mt-1 text-xs text-stone-400">Crafting copper surfaces</p>
+              <p className="mt-1 text-xs text-stone-400">Kitchen &amp; home storage</p>
             </div>
           </div>
 
@@ -323,11 +315,12 @@ export default function Home() {
             <h2 className="mt-3 font-display text-4xl leading-tight text-charcoal-950 sm:text-5xl">
               Built for Spaces That
               <br />
-              <span className="copper-gradient-text">Stand Out</span>
+              <span className="copper-gradient-text">Stay Organised</span>
             </h2>
             <p className="mt-5 text-stone-500 leading-relaxed">
-              We design copper surfaces with architects and interior designers — not for
-              mass-market shelves but for projects that demand character and craft.
+              We design and supply kitchen storage products with practical functionality in mind —
+              not just aesthetics. Every rack, trolley and organizer is built to make daily life
+              easier and your kitchen more efficient.
             </p>
 
             <ul className="mt-8 space-y-4">

@@ -343,3 +343,46 @@ body {
 .animate-whatsapp-halo-pulse {
   animation: whatsapp-halo-pulse 2s infinite ease-out;
 }
+
+/* ── Category circle hover ── */
+.cat-circle {
+  transition:
+    transform   0.30s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow  0.30s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease;
+}
+
+.cat-item:hover .cat-circle,
+.cat-item:focus-visible .cat-circle {
+  transform: translateY(-4px) scale(1.07);
+  border-color: rgba(184, 112, 62, 0.65) !important;
+  box-shadow:
+    0 6px 24px 0 rgba(23, 20, 15, 0.12),
+    0 0 0 4px rgba(255, 255, 255, 0.9),
+    0 0 0 6px rgba(184, 112, 62, 0.10);
+}
+
+.cat-item:focus-visible {
+  outline: 2px solid var(--color-copper-500);
+  outline-offset: 4px;
+  border-radius: 9999px;
+}
+
+.cat-label {
+  transition: color 0.25s ease;
+}
+.cat-item:hover .cat-label,
+.cat-item:focus-visible .cat-label {
+  color: var(--color-copper-600);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .cat-circle {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cat-item:hover .cat-circle,
+  .cat-item:focus-visible .cat-circle {
+    transform: none;
+  }
+}

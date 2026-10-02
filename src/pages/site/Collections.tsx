@@ -20,8 +20,8 @@ export default function Collections() {
       <section className="relative overflow-hidden bg-charcoal-950">
         <div className="pointer-events-none absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1600&q=80"
-            alt="Copper architectural surface"
+            src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1600&q=80"
+            alt="Organised kitchen with storage racks and shelves"
             className="h-full w-full object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950 via-charcoal-950/90 to-copper-900/30" />
@@ -36,8 +36,8 @@ export default function Collections() {
               Categories
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-stone-400">
-              Six curated ranges of copper surfaces, each engineered for a distinct mood,
-              finish and architectural application.
+              Browse our full range of kitchen and home storage categories — from racks and
+              trolleys to shelves, baskets and utility stands.
             </p>
           </div>
           <div className="mt-10 flex items-center gap-2 text-sm text-copper-400 animate-float">
@@ -49,13 +49,13 @@ export default function Collections() {
 
       {/* ── Grid ── */}
       <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-3 gap-x-4 gap-y-12 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 justify-items-center">
           {loading
-            ? Array.from({ length: 6 }).map((_, i) => (
+            ? Array.from({ length: 8 }).map((_, i) => (
                 <CategoryCardSkeleton key={i} />
               ))
             : categories.map((c, i) => (
-                <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
+                <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)} flex justify-center`}>
                   <CategoryCard category={c} />
                 </div>
               ))}
@@ -66,11 +66,11 @@ export default function Collections() {
       <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-10">
         <div className="rounded-3xl border border-charcoal-950/8 bg-gradient-to-br from-beige-100 to-cream-50 p-10 text-center">
           <h2 className="font-display text-3xl text-charcoal-950">
-            Can't find the right finish?
+            Can't find the right product?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-stone-500">
-            Talk to our team about custom requirements or get samples sent to your studio before
-            committing to a large project.
+            Talk to our team about specific product requirements, availability or get a quote
+            for bulk quantities before placing your order.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <a href="/bulk-orders" className="inline-flex items-center gap-2 rounded-full bg-charcoal-950 px-6 py-3 text-sm font-semibold text-cream-50 transition-all hover:bg-copper-600 hover:-translate-y-0.5 hover:shadow-lg">

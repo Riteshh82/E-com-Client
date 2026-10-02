@@ -52,8 +52,8 @@ export default function Contact() {
             Get in Touch
           </h1>
           <p className="mt-5 max-w-xl text-stone-400">
-            Questions about a product, a project, or a bulk order — our team is here to help.
-            We aim to respond to every enquiry within one business day.
+            Questions about a kitchen rack, trolley, storage organizer, or a bulk order —
+            our team is here to help. We aim to respond to every enquiry within one business day.
           </p>
         </div>
       </section>
