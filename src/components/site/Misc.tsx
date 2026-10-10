@@ -41,10 +41,10 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
             loadedCategoryImages.add(category.image);
             setImgLoaded(true);
           }}
-          className={`rounded-full object-contain p-3 transition-opacity duration-500 ${
+          className={`rounded-full object-cover transition-opacity duration-500 ${
             imgLoaded ? "opacity-100" : "opacity-0"
           }`}
-          style={{ width: "82%", height: "82%" }}
+          style={{ width: "100%", height: "100%" }}
         />
       </div>
 

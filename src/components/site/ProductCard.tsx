@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Package } from "lucide-react";
 import type { ApiProduct } from "../../api";
-import { Badge } from "../ui/index";
+// import { Badge } from "../ui/index";
 import { MarketplaceButtons } from "./MarketplaceButtons";
 
 const loadedImages = new Set<string>();
@@ -51,12 +51,12 @@ export function ProductCard({ product }: { product: ApiProduct }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/30 via-transparent to-transparent opacity-0 transition-opacity duration-400 group-hover:opacity-100" />
 
-        <div className="absolute left-2 top-2 sm:left-3 sm:top-3 scale-90 sm:scale-100 origin-top-left">
+        {/* <div className="absolute left-2 top-2 sm:left-3 sm:top-3 scale-90 sm:scale-100 origin-top-left">
           <Badge variant="copper">{product.category}</Badge>
-        </div>
+        </div> */}
 
         {product.featured && (
-          <div className="absolute right-2 top-2 sm:right-3 sm:top-3">
+          <div className="absolute left-2 top-2 sm:left-3 sm:top-3">
             <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-950/80 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-semibold uppercase tracking-wider text-copper-300 backdrop-blur-sm">
               ★ Featured
             </span>

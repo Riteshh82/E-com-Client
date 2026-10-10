@@ -47,12 +47,10 @@ const whyPoints = [
 ];
 
 const stats = [
-  { value: "50+", label: "Product Variants" },
-  { value: "10+", label: "Categories" },
-  { value: "500+", label: "Happy Customers" },
+  { value: "200+", label: "Product" },
+  { value: "D2C", label: "Bulk Ready" },
   { value: "B2B", label: "Bulk Ready" },
 ];
-
 export default function Home() {
   const [featured, setFeatured] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
@@ -93,7 +91,7 @@ export default function Home() {
         <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] -translate-y-1/4 translate-x-1/4 rounded-full bg-copper-300/10 blur-[100px]" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 -translate-x-1/3 translate-y-1/3 rounded-full bg-copper-500/8 blur-[80px]" />
 
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:py-28">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-12 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:py-16">
           {/* Left */}
           <div className="relative z-10 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-copper-500/20 bg-copper-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-copper-700">
@@ -156,12 +154,12 @@ export default function Home() {
             </div>
 
             {/* Floating cards */}
-            <div className="absolute -bottom-5 -left-6 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-5 shadow-2xl sm:block">
+            <div className="absolute -bottom-2 -left-6 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-5 shadow-2xl sm:block">
               <p className="font-display text-3xl text-copper-600">50+</p>
               <p className="mt-0.5 text-xs text-stone-500">Storage product variants</p>
             </div>
 
-            <div className="absolute -right-5 top-1/3 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-4 shadow-xl sm:block" style={{ animationDelay: "1s" }}>
+            <div className="absolute -right-5 top-1/8 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-4 shadow-xl sm:block" style={{ animationDelay: "1s" }}>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 <p className="text-xs font-medium text-charcoal-950">Bulk ready</p>
@@ -236,7 +234,7 @@ export default function Home() {
               return (
                 <Link
                   key={b._id}
-                  to={`/products?category=${b.categorySlug}`}
+                  to={`/products?category=${b.categorySlug}&newlyAdded=true`}
                   className={`group relative block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-lg ${isLastAndOdd ? "md:col-span-2" : ""}`}
                 >
                   {/* Keep an aspect ratio to avoid layout shifts, but full width */}

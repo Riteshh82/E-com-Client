@@ -29,6 +29,7 @@ export interface ApiProduct {
   myntraUrl: string;
   whatsappOrder: boolean;
   featured: boolean;
+  isNewlyAdded: boolean;
   bulkAvailable: boolean;
   status: "Published" | "Draft";
   views: number;
@@ -131,11 +132,16 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function apiUploadImage(file: File): Promise<{ url: string }> {
+export async function apiUploadImage(
+  file: File,
+  productId?: string
+): Promise<{ url: string; key?: string }> {
   const formData = new FormData();
   formData.append("image", file);
 
-  const res = await fetch(`${BASE}/upload`, {
+  const qs = productId ? `?productId=${encodeURIComponent(productId)}` : "";
+
+  const res = await fetch(`${BASE}/upload${qs}`, {
     method: "POST",
     headers: {
       ...authHeaders(),
@@ -151,11 +157,9 @@ export async function apiUploadImage(file: File): Promise<{ url: string }> {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message ?? res.statusText);
   }
-  
-  const data = await res.json();
-  // Ensure the URL is absolute by prepending the backend origin
-  const backendOrigin = new URL(BASE, window.location.origin).origin;
-  return { ...data, url: `${backendOrigin}${data.url}` };
+
+  // R2 returns an absolute public URL — no origin prepending needed.
+  return res.json() as Promise<{ url: string; key?: string }>;
 }
 
 export async function apiLogin(
@@ -167,6 +171,18 @@ export async function apiLogin(
     body: JSON.stringify({ email, password }),
   });
 }
+
+/**
+ * Delete an image from R2 by its public URL.
+ * Only works for images owned by this bucket (validated on the backend).
+ */
+export async function apiDeleteProductImage(url: string): Promise<void> {
+  await apiFetch("/upload", {
+    method: "DELETE",
+    body: JSON.stringify({ url }),
+  });
+}
+
 
 // ── Smart Cache System ────────────────────────────────────────────────────────
 

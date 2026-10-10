@@ -6,7 +6,7 @@ import { WhatsAppButton } from "../../components/site/WhatsAppButton";
 const COMPANY = {
   phone: "+91 98765 43210",
   email: "hello@nextsteelinnovation.in",
-  address: "Plot 14, Industrial Estate, Lower Parel, Mumbai, Maharashtra 400013",
+  address: "Plot No 39 Om Industrial Park Part 2, B/H Paavan Industrial Park Bakrol Bujrang Ahmedabad Gujarat -382430",
 };
 
 const contactItems = [

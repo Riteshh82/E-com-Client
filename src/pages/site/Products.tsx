@@ -8,6 +8,7 @@ import { Search, X } from "lucide-react";
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "all";
+  const newlyAddedOnly = searchParams.get("newlyAdded") === "true";
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -40,6 +41,7 @@ export default function Products() {
       const cat = categories.find((c) => c.slug === activeCategory);
       if (cat) params.category = cat.name;
     }
+    if (newlyAddedOnly) params.isNewlyAdded = "true";
     if (debouncedQuery.trim()) params.q = debouncedQuery.trim();
 
     apiGetProducts(params, (r) => { if (isMounted) setProducts(r.products); })
@@ -55,7 +57,7 @@ export default function Products() {
       });
       
     return () => { isMounted = false; };
-  }, [activeCategory, debouncedQuery, categories]);
+  }, [activeCategory, newlyAddedOnly, debouncedQuery, categories]);
 
   const activeCategoryName = useMemo(
     () => categories.find((c) => c.slug === activeCategory)?.name,
@@ -70,10 +72,14 @@ export default function Products() {
           <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
             Full Range
           </span>
-          <h1 className="mt-2 font-display text-5xl text-charcoal-950">Products</h1>
+          <h1 className="mt-2 font-display text-5xl text-charcoal-950">
+            {newlyAddedOnly ? "Newly Added Products" : "Products"}
+          </h1>
           <p className="mt-3 max-w-xl text-stone-500">
-            Browse our full range of kitchen racks, trolleys, shelves, organizers and home storage
-            products — built for everyday use in modern homes and businesses.
+            {newlyAddedOnly 
+              ? "Check out the latest additions to our kitchen and home storage range."
+              : "Browse our full range of kitchen racks, trolleys, shelves, organizers and home storage products — built for everyday use in modern homes and businesses."
+            }
           </p>
         </div>
       </section>

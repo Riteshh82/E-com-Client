@@ -27,8 +27,8 @@ const pillars = [
 
 const stats = [
   { value: "2018", label: "Year Founded", icon: Award },
-  { value: "500+", label: "Happy Customers", icon: Users },
-  { value: "10+", label: "Product Categories", icon: Layers },
+  { value: "D2C", label: "Trade Support", icon: Users },
+  { value: "200+", label: "Product", icon: Layers },
   { value: "B2B", label: "Trade Support", icon: MapPin },
 ];
 

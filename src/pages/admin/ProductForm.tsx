@@ -36,6 +36,7 @@ export default function ProductForm() {
   const [dragActive, setDragActive] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [featured, setFeatured] = useState(false);
+  const [isNewlyAdded, setIsNewlyAdded] = useState(false);
   const [bulkAvailable, setBulkAvailable] = useState(true);
   const [published, setPublished] = useState(true);
   const [whatsappOrder, setWhatsappOrder] = useState(true); // default ON for new products
@@ -61,6 +62,7 @@ export default function ProductForm() {
         setProductCode(p.productCode ?? "");
         setImages(p.images ?? []);
         setFeatured(p.featured);
+        setIsNewlyAdded(p.isNewlyAdded ?? false);
         setBulkAvailable(p.bulkAvailable);
         setPublished(p.status === "Published");
         setWhatsappOrder(p.whatsappOrder ?? true);
@@ -93,20 +95,22 @@ export default function ProductForm() {
     if (!file) return;
     
     // Basic validation
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "image/avif"];
     if (!validTypes.includes(file.type)) {
-      showToast("Only JPG, PNG and WebP images are allowed.");
+      showToast("Only JPG, PNG, WebP and AVIF images are allowed.");
       return;
     }
     
-    if (file.size > 5 * 1024 * 1024) {
-      showToast("Image size should be less than 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("Image size should be less than 10 MB.");
       return;
     }
 
     setUploadingImage(true);
     try {
-      const res = await apiUploadImage(file);
+      // Pass the product ID so R2 key is organised under products/{id}/
+      // For new products the ID isn't known yet; 'tmp' is used as a placeholder.
+      const res = await apiUploadImage(file, existing?._id);
       setImages((prev) => [...prev, res.url]);
       showToast("Image uploaded successfully.");
     } catch (err: unknown) {
@@ -186,6 +190,7 @@ export default function ProductForm() {
       flipkartUrl: String(fd.get("flipkartUrl") ?? ""),
       myntraUrl: String(fd.get("myntraUrl") ?? ""),
       featured,
+      isNewlyAdded,
       bulkAvailable,
       whatsappOrder,
       status: published ? "Published" : "Draft",
@@ -361,7 +366,7 @@ export default function ProductForm() {
               type="file" 
               ref={fileInputRef}
               className="hidden" 
-              accept="image/jpeg, image/png, image/webp"
+              accept="image/jpeg, image/png, image/webp, image/avif"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
                   handleFileSelect(e.target.files[0]);
@@ -448,6 +453,7 @@ export default function ProductForm() {
           <h2 className="font-display text-lg text-charcoal-950">Options</h2>
           <div className="mt-5 space-y-4">
             {[
+              { label: "Newly Added Product", checked: isNewlyAdded, set: setIsNewlyAdded },
               { label: "Featured Product", checked: featured, set: setFeatured },
               { label: "Bulk Order Available", checked: bulkAvailable, set: setBulkAvailable },
               { label: "WhatsApp Order Available", checked: whatsappOrder, set: setWhatsappOrder },

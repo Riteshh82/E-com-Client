@@ -71,7 +71,7 @@ const columns = [
 const contactItems = [
   { icon: Phone, value: COMPANY.phone },
   { icon: Mail, value: COMPANY.email },
-  { icon: MapPin, value: "Lower Parel, Mumbai" },
+  { icon: MapPin, value: "Plot No 39 Om Industrial Park Part 2, B/H Paavan Industrial Park Bakrol Bujrang Ahmedabad Gujarat -382430" },
 ];
 
 export function Footer() {
@@ -129,20 +129,41 @@ export function Footer() {
 
           {/* Link columns */}
           {columns.map((col) => (
-            <div key={col.title}>
-              <h4 className="font-display text-sm tracking-wider text-copper-400">{col.title}</h4>
-              <ul className="mt-4 space-y-3">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm text-stone-500 transition-colors hover:text-cream-50"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div key={col.title} className="flex h-full flex-col">
+              <div>
+                <h4 className="font-display text-sm tracking-wider text-copper-400">{col.title}</h4>
+                <ul className="mt-4 space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        to={link.to}
+                        className="text-sm text-stone-500 transition-colors hover:text-cream-50"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {col.title === "Company" && (
+                <div className="mt-auto pt-12">
+                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-4">Brand Partner</h4>
+                  <div className="flex items-center gap-4 h-[72px]">
+                    <img src="/ProGrade.png" alt="ProGrade" className="h-full w-auto rounded object-contain" />
+                    <img src="/SBS Store.png" alt="S-B-S Store" className="h-full w-auto rounded object-contain" />
+                  </div>
+                </div>
+              )}
+
+              {col.title === "For Businesses" && (
+                <div className="mt-auto pt-12">
+                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-4">Manufacturing Partner</h4>
+                  <div className="flex items-center h-[72px]">
+                    <span className="text-xl font-bold tracking-wide text-stone-500">Shiv Baba Steel</span>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
