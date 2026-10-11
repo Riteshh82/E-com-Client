@@ -384,3 +384,66 @@ body {
     transform: none;
   }
 }
+
+/* ── Premium Steel Loader Keyframes ── */
+@keyframes steel-spin-clockwise {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes steel-spin-counter {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+@keyframes steel-core-rotate {
+  0%   { transform: rotate(45deg) scale(0.95); }
+  50%  { transform: rotate(135deg) scale(1.05); }
+  100% { transform: rotate(225deg) scale(0.95); }
+}
+
+@keyframes steel-pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.35; }
+  50%      { transform: scale(1.2); opacity: 0.75; }
+}
+
+@keyframes steel-shimmer-bar {
+  0%   { transform: translateX(-150%); }
+  100% { transform: translateX(350%); }
+}
+
+.steel-loader-spin-clockwise {
+  animation: steel-spin-clockwise 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.steel-loader-spin-counter {
+  animation: steel-spin-counter 4.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.steel-loader-spin-fast {
+  animation: steel-spin-clockwise 2.2s linear infinite;
+}
+
+.steel-loader-core-rotate {
+  animation: steel-core-rotate 5s ease-in-out infinite;
+}
+
+.steel-loader-pulse {
+  animation: steel-pulse 2.8s ease-in-out infinite;
+}
+
+.steel-loader-shimmer-bar {
+  animation: steel-shimmer-bar 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .steel-loader-spin-clockwise,
+  .steel-loader-spin-counter,
+  .steel-loader-spin-fast,
+  .steel-loader-core-rotate,
+  .steel-loader-pulse,
+  .steel-loader-shimmer-bar {
+    animation-duration: 12s;
+    animation-iteration-count: 1;
+  }
+}

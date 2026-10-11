@@ -16,10 +16,8 @@ interface HeroBannerCarouselProps {
 
 export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const total = banners.length;
 
@@ -37,25 +35,19 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
     setCurrentIndex(index);
   };
 
-  // 5-second auto-rotation interval with pause on hover
+  // 5-second auto-rotation interval
   useEffect(() => {
-    if (total <= 1 || isPaused) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      return;
-    }
+    if (total <= 1) return;
 
-    timerRef.current = setInterval(() => {
-      nextSlide();
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % total);
     }, 5000);
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [total, isPaused, nextSlide, currentIndex]);
+    return () => clearInterval(timer);
+  }, [total]);
 
   // Touch swipe support for smartphones and tablets
   const handleTouchStart = (e: React.TouchEvent) => {
-    setIsPaused(true);
     touchStartX.current = e.targetTouches[0].clientX;
   };
 
@@ -64,7 +56,6 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
   };
 
   const handleTouchEnd = () => {
-    setIsPaused(false);
     if (!touchStartX.current || !touchEndX.current) return;
     const distance = touchStartX.current - touchEndX.current;
     const minSwipeDistance = 45;
@@ -160,8 +151,6 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
   return (
     <div
       className="group relative w-full overflow-hidden bg-charcoal-950 select-none focus:outline-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -211,15 +200,15 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
 
               {/* Text & CTA Overlay (if banner has title or CTA) */}
               {(banner.title || banner.subtitle || banner.ctaText) && (
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/85 via-charcoal-950/30 to-transparent sm:bg-gradient-to-r sm:from-charcoal-950/85 sm:via-charcoal-950/40 sm:to-transparent flex items-end sm:items-center px-6 pb-16 sm:pb-0 sm:px-12 lg:px-20">
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-charcoal-950/45 sm:via-charcoal-950/15 sm:to-transparent flex items-end sm:items-center px-6 pb-16 sm:pb-0 sm:px-12 lg:px-20">
                   <div className="max-w-xl text-left space-y-3 sm:space-y-4 animate-fade-in">
                     {banner.title && (
-                      <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-md leading-tight">
+                      <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] leading-tight">
                         {banner.title}
                       </h2>
                     )}
                     {banner.subtitle && (
-                      <p className="text-xs sm:text-base text-stone-200 line-clamp-2 sm:line-clamp-3 leading-relaxed drop-shadow">
+                      <p className="text-xs sm:text-base text-stone-100 line-clamp-2 sm:line-clamp-3 leading-relaxed drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]">
                         {banner.subtitle}
                       </p>
                     )}

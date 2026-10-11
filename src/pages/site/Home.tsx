@@ -23,6 +23,7 @@ import {
   type ApiHeroBanner,
 } from "../../api";
 import { HeroBannerCarousel } from "../../components/site/HeroBannerCarousel";
+import { PremiumLoader } from "../../components/site/PremiumLoader";
 
 const features = [
   {
@@ -64,43 +65,105 @@ export default function Home() {
   const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
   const [banners, setBanners] = useState<ApiHeroBanner[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Helper to preload an image URL without blocking indefinitely
+  const preloadImage = (url: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!url) return resolve();
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = url;
+    });
+  };
 
   useEffect(() => {
     let isMounted = true;
 
-    apiGetHeroBanners((data) => { if (isMounted) setBanners(data); })
-      .then((data) => {
+    // Safety timeout: Never let the loader hang more than 2.8s even on slow or stalled networks
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setInitialLoading(false);
+    }, 2800);
+
+    // 1. Fetch banners & prepare hero image
+    const bannersPromise = apiGetHeroBanners((data) => {
+      if (isMounted) setBanners(data);
+    })
+      .then(async (data) => {
         if (!isMounted) return;
         setBanners(data);
         setLoadingBanners(false);
+        // Preload the first active banner image for a crisp, instant hero reveal
+        if (data.length > 0) {
+          const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+          const initialImg = isMobile ? (data[0].mobileImageUrl || data[0].desktopImageUrl) : data[0].desktopImageUrl;
+          if (initialImg) {
+            await Promise.race([
+              preloadImage(initialImg),
+              new Promise((r) => setTimeout(r, 1200)), // Don't hold screen more than 1.2s for image
+            ]);
+          }
+        }
       })
-      .catch(() => { if (isMounted) setLoadingBanners(false); });
+      .catch(() => {
+        if (isMounted) setLoadingBanners(false);
+      });
 
-    apiGetNewlyAddeds((data) => { if (isMounted) setNewlyAddeds(data); })
-      .then((data) => { if (isMounted) setNewlyAddeds(data); })
-      .catch(() => {});
-      
-    apiGetProducts({ featured: "true", status: "Published" }, (r) => { if (isMounted) setFeatured(r.products); })
-      .then((r) => {
-        if (!isMounted) return;
-        setFeatured(r.products);
-        setLoadingProducts(false);
-      })
-      .catch(() => { if (isMounted) setLoadingProducts(false); });
-      
-    apiGetCategories((data) => { if (isMounted) setCategories(data); })
+    // 2. Fetch categories
+    const categoriesPromise = apiGetCategories((data) => {
+      if (isMounted) setCategories(data);
+    })
       .then((data) => {
         if (!isMounted) return;
         setCategories(data);
         setLoadingCategories(false);
       })
-      .catch(() => { if (isMounted) setLoadingCategories(false); });
+      .catch(() => {
+        if (isMounted) setLoadingCategories(false);
+      });
 
-    return () => { isMounted = false; };
+    // 3. Fetch featured products
+    const productsPromise = apiGetProducts({ featured: "true", status: "Published" }, (r) => {
+      if (isMounted) setFeatured(r.products);
+    })
+      .then((r) => {
+        if (!isMounted) return;
+        setFeatured(r.products);
+        setLoadingProducts(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoadingProducts(false);
+      });
+
+    // 4. Non-blocking newly added items
+    apiGetNewlyAddeds((data) => {
+      if (isMounted) setNewlyAddeds(data);
+    })
+      .then((data) => {
+        if (isMounted) setNewlyAddeds(data);
+      })
+      .catch(() => {});
+
+    // When all critical above-the-fold content is resolved, dismiss the loader
+    Promise.allSettled([bannersPromise, categoriesPromise, productsPromise]).then(() => {
+      if (isMounted) {
+        clearTimeout(safetyTimer);
+        setInitialLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   return (
     <div>
+      {/* ── Creative Stainless-Steel Initial Loader ── */}
+      <PremiumLoader isLoading={initialLoading} />
+
       {/* ── Dynamic Hero Carousel ── */}
       <HeroBannerCarousel banners={banners} loading={loadingBanners} />
 
