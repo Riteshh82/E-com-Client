@@ -93,7 +93,7 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
   // Skeleton state while loading
   if (loading) {
     return (
-      <div className="relative w-full overflow-hidden bg-stone-100 aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/9] animate-pulse">
+      <div className="relative w-full overflow-hidden bg-stone-100 h-[calc(100vh-5rem)] h-[calc(100dvh-5rem)] sm:h-auto sm:aspect-[16/9] lg:aspect-[21/9] animate-pulse">
         <div className="absolute inset-0 bg-gradient-to-r from-stone-200 via-stone-100 to-stone-200" />
       </div>
     );
@@ -172,7 +172,7 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
       aria-label="Promotional Hero Banners"
     >
       {/* ── Banner Slides Container ── */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[660px]">
+      <div className="relative w-full h-[calc(100vh-5rem)] h-[calc(100dvh-5rem)] sm:h-auto sm:aspect-[16/9] lg:aspect-[21/9] sm:max-h-[660px]">
         {banners.map((banner, index) => {
           const isActive = index === currentIndex;
 
@@ -211,7 +211,7 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
 
               {/* Text & CTA Overlay (if banner has title or CTA) */}
               {(banner.title || banner.subtitle || banner.ctaText) && (
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/85 via-charcoal-950/30 to-transparent sm:bg-gradient-to-r sm:from-charcoal-950/85 sm:via-charcoal-950/40 sm:to-transparent flex items-end sm:items-center px-6 pb-12 sm:pb-0 sm:px-12 lg:px-20">
+                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/85 via-charcoal-950/30 to-transparent sm:bg-gradient-to-r sm:from-charcoal-950/85 sm:via-charcoal-950/40 sm:to-transparent flex items-end sm:items-center px-6 pb-16 sm:pb-0 sm:px-12 lg:px-20">
                   <div className="max-w-xl text-left space-y-3 sm:space-y-4 animate-fade-in">
                     {banner.title && (
                       <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white drop-shadow-md leading-tight">
