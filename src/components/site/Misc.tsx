@@ -37,6 +37,7 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
           src={category.image}
           alt={category.name}
           loading="lazy"
+          decoding="async"
           onLoad={() => {
             loadedCategoryImages.add(category.image);
             setImgLoaded(true);

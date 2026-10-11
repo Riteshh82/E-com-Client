@@ -38,6 +38,7 @@ export function ProductCard({ product }: { product: ApiProduct }) {
             src={imageSrc}
             alt={product.name}
             loading="lazy"
+            decoding="async"
             onLoad={() => {
               loadedImages.add(imageSrc);
               setImgLoaded(true);
