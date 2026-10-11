@@ -6,11 +6,13 @@ import {
   ClipboardList,
   MessageSquare,
   Image,
+  Layers,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/admin/hero-banners", label: "Hero Banners", icon: Layers },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/newlyadded", label: "Newly Added", icon: Image },

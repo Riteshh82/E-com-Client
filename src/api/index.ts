@@ -58,6 +58,42 @@ export interface ApiNewlyAdded {
   updatedAt: string;
 }
 
+export interface ApiHeroBannerImageMeta {
+  filename?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+  format?: string;
+  mimeType?: string;
+}
+
+export interface ApiHeroBanner {
+  _id: string;
+  name: string;
+  desktopImageUrl: string;
+  mobileImageUrl: string;
+  desktopImageKey?: string;
+  mobileImageKey?: string;
+  desktopMetadata?: ApiHeroBannerImageMeta;
+  mobileMetadata?: ApiHeroBannerImageMeta;
+  title?: string;
+  subtitle?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  order: number;
+  status: "Active" | "Inactive";
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiUploadImageResult {
+  url: string;
+  key?: string;
+  metadata?: ApiHeroBannerImageMeta;
+}
+
 export type InquiryStatus =
   | "New"
   | "Contacted"
@@ -134,12 +170,21 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export async function apiUploadImage(
   file: File,
-  productId?: string
-): Promise<{ url: string; key?: string }> {
+  targetOrOptions?: string | { productId?: string; folder?: string; identifier?: string }
+): Promise<ApiUploadImageResult> {
   const formData = new FormData();
   formData.append("image", file);
 
-  const qs = productId ? `?productId=${encodeURIComponent(productId)}` : "";
+  const queryParams = new URLSearchParams();
+  if (typeof targetOrOptions === "string") {
+    queryParams.set("productId", targetOrOptions);
+  } else if (targetOrOptions) {
+    if (targetOrOptions.productId) queryParams.set("productId", targetOrOptions.productId);
+    if (targetOrOptions.identifier) queryParams.set("identifier", targetOrOptions.identifier);
+    if (targetOrOptions.folder) queryParams.set("folder", targetOrOptions.folder);
+  }
+
+  const qs = queryParams.toString() ? `?${queryParams.toString()}` : "";
 
   const res = await fetch(`${BASE}/upload${qs}`, {
     method: "POST",
@@ -159,7 +204,7 @@ export async function apiUploadImage(
   }
 
   // R2 returns an absolute public URL — no origin prepending needed.
-  return res.json() as Promise<{ url: string; key?: string }>;
+  return res.json() as Promise<ApiUploadImageResult>;
 }
 
 export async function apiLogin(
@@ -471,3 +516,70 @@ export async function apiDeleteNewlyAdded(id: string): Promise<void> {
   await apiFetch(`/newlyadded/${id}`, { method: "DELETE" });
   clearApiCache("newlyadded");
 }
+
+// ── Hero Banners ─────────────────────────────────────────────────────────────
+
+export async function apiGetHeroBanners(
+  onRefresh?: (data: ApiHeroBanner[]) => void
+): Promise<ApiHeroBanner[]> {
+  return cachedFetch("hero-banners:public", () => apiFetch("/hero-banners"), onRefresh, 60 * 1000);
+}
+
+export async function apiGetAdminHeroBanners(): Promise<ApiHeroBanner[]> {
+  return apiFetch<ApiHeroBanner[]>("/hero-banners/admin");
+}
+
+export async function apiGetHeroBannerById(id: string): Promise<ApiHeroBanner> {
+  return apiFetch<ApiHeroBanner>(`/hero-banners/${id}`);
+}
+
+export async function apiCreateHeroBanner(data: Partial<ApiHeroBanner>): Promise<ApiHeroBanner> {
+  const res = await apiFetch<ApiHeroBanner>("/hero-banners", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  clearApiCache("hero-banners");
+  return res;
+}
+
+export async function apiUpdateHeroBanner(id: string, data: Partial<ApiHeroBanner>): Promise<ApiHeroBanner> {
+  const res = await apiFetch<ApiHeroBanner>(`/hero-banners/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  clearApiCache("hero-banners");
+  return res;
+}
+
+export async function apiDeleteHeroBanner(id: string): Promise<void> {
+  await apiFetch(`/hero-banners/${id}`, { method: "DELETE" });
+  clearApiCache("hero-banners");
+}
+
+export async function apiReorderHeroBanners(
+  items: Array<{ id: string; order: number }>
+): Promise<ApiHeroBanner[]> {
+  const res = await apiFetch<ApiHeroBanner[]>("/hero-banners/reorder", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  clearApiCache("hero-banners");
+  return res;
+}
+
+export async function apiToggleHeroBannerStatus(
+  id: string,
+  status: "Active" | "Inactive"
+): Promise<ApiHeroBanner> {
+  const res = await apiFetch<ApiHeroBanner>(`/hero-banners/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  clearApiCache("hero-banners");
+  return res;
+}
+

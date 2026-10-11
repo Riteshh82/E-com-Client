@@ -20,6 +20,7 @@ import CategoriesAdmin from "./pages/admin/CategoriesAdmin";
 import BulkOrdersAdmin from "./pages/admin/BulkOrdersAdmin";
 import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import NewlyAddedAdmin from "./pages/admin/NewlyAddedAdmin";
+import HeroBannersAdmin from "./pages/admin/HeroBannersAdmin";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/:id/edit" element={<ProductForm />} />
         <Route path="categories" element={<CategoriesAdmin />} />
+        <Route path="hero-banners" element={<HeroBannersAdmin />} />
         <Route path="newlyadded" element={<NewlyAddedAdmin />} />
         <Route path="bulk-orders" element={<BulkOrdersAdmin />} />
         <Route path="messages" element={<MessagesAdmin />} />

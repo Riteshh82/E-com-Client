@@ -12,7 +12,17 @@ import {
 import { Button } from "../../components/ui/Button";
 import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
 import { CategoryCard, CategoryCardSkeleton, BulkOrderCTA } from "../../components/site/Misc";
-import { apiGetProducts, apiGetCategories, apiGetNewlyAddeds, type ApiProduct, type ApiCategory, type ApiNewlyAdded } from "../../api";
+import {
+  apiGetProducts,
+  apiGetCategories,
+  apiGetNewlyAddeds,
+  apiGetHeroBanners,
+  type ApiProduct,
+  type ApiCategory,
+  type ApiNewlyAdded,
+  type ApiHeroBanner,
+} from "../../api";
+import { HeroBannerCarousel } from "../../components/site/HeroBannerCarousel";
 
 const features = [
   {
@@ -46,20 +56,26 @@ const whyPoints = [
   "Available on Amazon, Flipkart & Myntra",
 ];
 
-const stats = [
-  { value: "200+", label: "Product" },
-  { value: "D2C", label: "Bulk Ready" },
-  { value: "B2B", label: "Bulk Ready" },
-];
 export default function Home() {
   const [featured, setFeatured] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
+  const [banners, setBanners] = useState<ApiHeroBanner[]>([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+
+    apiGetHeroBanners((data) => { if (isMounted) setBanners(data); })
+      .then((data) => {
+        if (!isMounted) return;
+        setBanners(data);
+        setLoadingBanners(false);
+      })
+      .catch(() => { if (isMounted) setLoadingBanners(false); });
+
     apiGetNewlyAddeds((data) => { if (isMounted) setNewlyAddeds(data); })
       .then((data) => { if (isMounted) setNewlyAddeds(data); })
       .catch(() => {});
@@ -85,90 +101,8 @@ export default function Home() {
 
   return (
     <div>
-      {/* ── Hero ── */}
-      <section className="hero-gradient relative overflow-hidden">
-        {/* Decorative orbs */}
-        <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] -translate-y-1/4 translate-x-1/4 rounded-full bg-copper-300/10 blur-[100px]" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 -translate-x-1/3 translate-y-1/3 rounded-full bg-copper-500/8 blur-[80px]" />
-
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-12 lg:grid-cols-2 lg:gap-10 lg:px-10 lg:py-16">
-          {/* Left */}
-          <div className="relative z-10 animate-fade-up">
-            <span className="inline-flex items-center gap-2 rounded-full border border-copper-500/20 bg-copper-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-copper-700">
-              <span className="h-1.5 w-1.5 animate-pulse-copper rounded-full bg-copper-500" />
-              Kitchen &amp; Home Storage Solutions
-            </span>
-
-            <h1 className="mt-7 font-display text-5xl leading-[1.05] text-charcoal-950 sm:text-6xl lg:text-[3.5rem] xl:text-[4rem]">
-              Smart Storage
-              <br />
-              <span className="copper-gradient-text">for a Better</span>
-              <br />
-              Kitchen.
-            </h1>
-
-            <p className="mt-6 max-w-lg text-base leading-relaxed text-stone-600">
-              Practical kitchen racks, trolleys, organizers and storage solutions designed to
-              make everyday spaces more functional, tidy and easy to use.
-            </p>
-
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link to="/products">
-                <Button size="lg" className="shadow-lg shadow-copper-500/20">
-                  Shop Products
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/collections">
-                <Button size="lg" variant="outline">
-                  Explore Categories
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats strip */}
-            <div className="mt-12 flex flex-wrap gap-8 border-t border-charcoal-950/8 pt-8">
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <p className="font-display text-2xl text-copper-600">{s.value}</p>
-                  <p className="text-xs text-stone-500">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — hero image */}
-          <div className="relative animate-fade-up stagger-2">
-            {/* Rotating ring decoration */}
-            <div className="absolute -right-8 -top-8 h-72 w-72 animate-spin-slow rounded-full border border-copper-300/20" />
-            <div className="absolute -right-4 -top-4 h-52 w-52 rounded-full border border-copper-400/15" />
-
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(23,20,15,0.22)]">
-              <img
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=85"
-                alt="Well-organised modern kitchen with storage racks and shelves"
-                className="h-full w-full object-cover"
-              />
-              {/* Subtle warm overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-copper-500/5 via-transparent to-transparent" />
-            </div>
-
-            {/* Floating cards */}
-            <div className="absolute -bottom-2 -left-6 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-5 shadow-2xl sm:block">
-              <p className="font-display text-3xl text-copper-600">50+</p>
-              <p className="mt-0.5 text-xs text-stone-500">Storage product variants</p>
-            </div>
-
-            <div className="absolute -right-5 top-1/8 hidden animate-float rounded-2xl border border-charcoal-950/8 bg-white p-4 shadow-xl sm:block" style={{ animationDelay: "1s" }}>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                <p className="text-xs font-medium text-charcoal-950">Bulk ready</p>
-              </div>
-              <p className="mt-1 text-[10px] text-stone-400">For retailers &amp; businesses</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── Dynamic Hero Carousel ── */}
+      <HeroBannerCarousel banners={banners} loading={loadingBanners} />
 
       {/* ── Trust strip ── */}
       <section className="relative border-y border-charcoal-950/8 bg-white">
