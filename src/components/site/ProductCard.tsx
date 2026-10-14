@@ -5,15 +5,15 @@ import type { ApiProduct } from "../../api";
 // import { Badge } from "../ui/index";
 import { MarketplaceButtons } from "./MarketplaceButtons";
 
-const loadedImages = new Set<string>();
+import { isProductImageLoaded, markProductImageLoaded } from "../../lib/imageCache";
 
 export function ProductCard({ product }: { product: ApiProduct }) {
   const imageSrc = product.images?.[0] || "";
-  const [imgLoaded, setImgLoaded] = useState(() => loadedImages.has(imageSrc));
+  const [imgLoaded, setImgLoaded] = useState(() => isProductImageLoaded(imageSrc));
 
   const imgCallbackRef = useCallback((node: HTMLImageElement | null) => {
     if (node?.complete) {
-      loadedImages.add(imageSrc);
+      markProductImageLoaded(imageSrc);
       setImgLoaded(true);
     }
   }, [imageSrc]);
@@ -40,7 +40,7 @@ export function ProductCard({ product }: { product: ApiProduct }) {
             loading="lazy"
             decoding="async"
             onLoad={() => {
-              loadedImages.add(imageSrc);
+              markProductImageLoaded(imageSrc);
               setImgLoaded(true);
             }}
             className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
@@ -151,7 +151,7 @@ export function ProductGrid({ products }: { products: ApiProduct[] }) {
       {products.map((product, i) => (
         <div
           key={product._id}
-          className={`h-full animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+          className={`h-full animate-fade-up stagger-${Math.min((i % 4) + 1, 4)}`}
         >
           <ProductCard product={product} />
         </div>

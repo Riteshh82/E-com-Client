@@ -7,11 +7,18 @@ import { Input, Textarea } from "../ui/index";
 import { useToast } from "../../context/ToastContext";
 import { apiSubmitMessage } from "../../api";
 
-/* ── CategoryCard (circular icon layout) ── */
-const loadedCategoryImages = new Set<string>();
+import { isCategoryImageLoaded, markCategoryImageLoaded } from "../../lib/imageCache";
 
+/* ── CategoryCard (circular icon layout) ── */
 export function CategoryCard({ category }: { category: ApiCategory }) {
-  const [imgLoaded, setImgLoaded] = useState(() => loadedCategoryImages.has(category.image));
+  const [imgLoaded, setImgLoaded] = useState(() => isCategoryImageLoaded(category.image));
+
+  const imgCallbackRef = useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete) {
+      markCategoryImageLoaded(category.image);
+      setImgLoaded(true);
+    }
+  }, [category.image]);
 
   return (
     <Link
@@ -34,12 +41,13 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
           <div className="absolute inset-0 rounded-full skeleton-shimmer" />
         )}
         <img
+          ref={imgCallbackRef}
           src={category.image}
           alt={category.name}
           loading="lazy"
           decoding="async"
           onLoad={() => {
-            loadedCategoryImages.add(category.image);
+            markCategoryImageLoaded(category.image);
             setImgLoaded(true);
           }}
           className={`rounded-full object-cover transition-opacity duration-500 ${
@@ -91,7 +99,7 @@ export function BulkOrderCTA() {
 
       <div className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
         <div className="flex flex-col items-start justify-between gap-12 lg:flex-row lg:items-center">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl reveal-left">
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-400">
               B2B &amp; Commercial
             </span>
@@ -106,15 +114,15 @@ export function BulkOrderCTA() {
               storage products. We support orders of all sizes.
             </p>
             <ul className="mt-7 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-              {bullets.map((point) => (
-                <li key={point} className="flex items-center gap-2.5 text-sm text-stone-300">
+              {bullets.map((point, i) => (
+                <li key={point} className={`flex items-center gap-2.5 text-sm text-stone-300 reveal reveal-delay-${i + 1}`}>
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-copper-400" />
                   {point}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 reveal-right">
             <Link to="/bulk-orders">
               <Button size="lg" className="shadow-lg shadow-copper-500/25">
                 Request Bulk Quote

@@ -122,18 +122,30 @@ export default function ProductDetail() {
     setLoading(true);
     setNotFound(false);
 
+    const loadRelated = async (category: string, currentId: string) => {
+      try {
+        const catRes = await apiGetProducts({ category, status: "Published" });
+        const sameCat = catRes.products.filter((x) => x._id !== currentId);
+        if (sameCat.length >= 4) {
+          if (isMounted) setRelated(sameCat.slice(0, 4));
+        } else {
+          const fallbackRes = await apiGetProducts({ status: "Published" });
+          const additional = fallbackRes.products.filter(
+            (x) => x._id !== currentId && !sameCat.some((c) => c._id === x._id)
+          );
+          if (isMounted) setRelated([...sameCat, ...additional].slice(0, 4));
+        }
+      } catch {}
+    };
+
     apiGetProduct(slug, (p) => {
       if (isMounted) setProduct(p);
-      apiGetProducts({ category: p.category, status: "Published" }, (r) => {
-        if (isMounted) setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4));
-      }).catch(() => {});
+      loadRelated(p.category, p._id);
     })
       .then((p) => {
         if (!isMounted) return;
         setProduct(p);
-        return apiGetProducts({ category: p.category, status: "Published" }).then((r) => {
-          if (isMounted) setRelated(r.products.filter((x) => x._id !== p._id).slice(0, 4));
-        });
+        return loadRelated(p.category, p._id);
       })
       .catch(() => {
         if (isMounted) setNotFound(true);

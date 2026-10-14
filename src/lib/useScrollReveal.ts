@@ -1,33 +1,60 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Attaches IntersectionObserver to all `.reveal` elements inside the
- * container returned by the hook. When an element enters the viewport,
- * `in-view` is added → CSS transition kicks in.
+ * Attaches IntersectionObserver to `.reveal`, `.reveal-left`, `.reveal-right`, `.reveal-scale`, `.reveal-fade` elements.
+ * Uses a MutationObserver to automatically discover and animate elements added dynamically (e.g. after API fetches).
  */
-export function useScrollReveal() {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function useScrollReveal<T extends HTMLElement = HTMLDivElement>() {
+  const containerRef = useRef<T>(null);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    const root = containerRef.current;
+    if (!root) return;
+
+    const observedSet = new WeakSet<Element>();
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("in-view");
-            observer.unobserve(entry.target); // animate once
+            observer.unobserve(entry.target); // animate once for a clean finish
           }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+      {
+        threshold: 0.08,
+        rootMargin: "0px 0px -40px 0px",
+      }
     );
 
-    const targets = el.querySelectorAll(".reveal");
-    targets.forEach((t) => observer.observe(t));
+    const observeTargets = () => {
+      if (!root) return;
+      const targets = root.querySelectorAll(
+        ".reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-fade"
+      );
+      targets.forEach((target) => {
+        if (!observedSet.has(target) && !target.classList.contains("in-view")) {
+          observedSet.add(target);
+          observer.observe(target);
+        }
+      });
+    };
 
-    return () => observer.disconnect();
+    // Initial observation pass
+    observeTargets();
+
+    // Re-observe whenever elements mount dynamically (such as asynchronous API data)
+    const mutationObserver = new MutationObserver(() => {
+      observeTargets();
+    });
+
+    mutationObserver.observe(root, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, []);
 
   return containerRef;

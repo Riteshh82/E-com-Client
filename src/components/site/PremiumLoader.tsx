@@ -15,18 +15,18 @@ export function PremiumLoader({ isLoading, onExited }: PremiumLoaderProps) {
     if (isLoading) {
       setShouldRender(true);
       setIsFadingOut(false);
-    } else {
-      // Begin smooth fade-out
+    } else if (shouldRender) {
+      // Begin smooth fade-out only if it was rendered
       setIsFadingOut(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsFadingOut(false);
         onExited?.();
-      }, 600); // 600ms matches the smooth CSS opacity/transform transition
+      }, 600);
 
       return () => clearTimeout(timer);
     }
-  }, [isLoading, onExited]);
+  }, [isLoading, onExited, shouldRender]);
 
   if (!shouldRender) return null;
 

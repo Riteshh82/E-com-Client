@@ -12,6 +12,7 @@ import {
 import { Button } from "../../components/ui/Button";
 import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
 import { CategoryCard, CategoryCardSkeleton, BulkOrderCTA } from "../../components/site/Misc";
+import { markProductImageLoaded, markCategoryImageLoaded } from "../../lib/imageCache";
 import {
   apiGetProducts,
   apiGetCategories,
@@ -57,6 +58,47 @@ const whyPoints = [
   "Available on Amazon, Flipkart & Myntra",
 ];
 
+// Helper to preload and decode an image URL fully into memory
+function preloadImage(url: string): Promise<boolean> {
+  if (!url) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const img = new Image();
+
+    // Check if already cached
+    if (img.complete && img.naturalWidth > 0) {
+      return resolve(true);
+    }
+
+    const onFinish = () => {
+      if ("decode" in img && typeof img.decode === "function") {
+        img.decode().then(() => resolve(true)).catch(() => resolve(true));
+      } else {
+        resolve(true);
+      }
+    };
+
+    img.onload = onFinish;
+    img.onerror = () => resolve(false); // Do not let a single broken link hang the entire loader
+    img.src = url;
+  });
+}
+
+// In-memory module flag + sessionStorage: persists across route changes in the app
+let hasHomeInitiallyLoaded = false;
+
+function checkAlreadyLoaded(): boolean {
+  if (hasHomeInitiallyLoaded) return true;
+  if (typeof window !== "undefined") {
+    try {
+      if (sessionStorage.getItem("nsi_home_loaded") === "true") {
+        hasHomeInitiallyLoaded = true;
+        return true;
+      }
+    } catch {}
+  }
+  return false;
+}
+
 export default function Home() {
   const [featured, setFeatured] = useState<ApiProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
@@ -65,78 +107,134 @@ export default function Home() {
   const [newlyAddeds, setNewlyAddeds] = useState<ApiNewlyAdded[]>([]);
   const [banners, setBanners] = useState<ApiHeroBanner[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
-  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Helper to preload an image URL without blocking indefinitely
-  const preloadImage = (url: string): Promise<void> => {
-    return new Promise((resolve) => {
-      if (!url) return resolve();
-      const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = url;
-    });
-  };
+  // ONLY show the loading screen on the very 1st initial visit to the site
+  const [isFirstVisit] = useState(() => !checkAlreadyLoaded());
+  const [initialLoading, setInitialLoading] = useState(isFirstVisit);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout: Never let the loader hang more than 2.8s even on slow or stalled networks
-    const safetyTimer = setTimeout(() => {
-      if (isMounted) setInitialLoading(false);
-    }, 2800);
+    // Routine to dismiss loader and permanently register initial load completed
+    const dismissLoader = () => {
+      if (!isMounted) return;
+      hasHomeInitiallyLoaded = true;
+      try {
+        sessionStorage.setItem("nsi_home_loaded", "true");
+      } catch {}
+      setInitialLoading(false);
+    };
 
-    // 1. Fetch banners & prepare hero image
-    const bannersPromise = apiGetHeroBanners((data) => {
-      if (isMounted) setBanners(data);
+    // If user changed routes and came back, DO NOT show the loading page again
+    if (!isFirstVisit) {
+      // Fast background refresh with smart cache (instant if already cached in memory)
+      apiGetHeroBanners((data) => {
+        if (isMounted) { setBanners(data); setLoadingBanners(false); }
+      })
+        .then((data) => {
+          if (isMounted) { setBanners(data); setLoadingBanners(false); }
+        })
+        .catch(() => { if (isMounted) setLoadingBanners(false); });
+
+      apiGetCategories((data) => {
+        if (isMounted) { setCategories(data); setLoadingCategories(false); }
+      })
+        .then((data) => {
+          if (isMounted) { setCategories(data); setLoadingCategories(false); }
+        })
+        .catch(() => { if (isMounted) setLoadingCategories(false); });
+
+      apiGetProducts({ featured: "true", status: "Published" }, (r) => {
+        if (isMounted) { setFeatured(r.products); setLoadingProducts(false); }
+      })
+        .then((r) => {
+          if (isMounted) { setFeatured(r.products); setLoadingProducts(false); }
+        })
+        .catch(() => { if (isMounted) setLoadingProducts(false); });
+
+      apiGetNewlyAddeds((data) => {
+        if (isMounted) setNewlyAddeds(data);
+      })
+        .then((data) => {
+          if (isMounted) setNewlyAddeds(data);
+        })
+        .catch(() => {});
+
+      return () => { isMounted = false; };
+    }
+
+    // --- VERY FIRST VISIT ONLY: Fast, focused above-the-fold image preloading ---
+    const startTime = Date.now();
+    const MIN_LOADER_TIME = 350; // smooth minimum so there is no instant jarring flash
+    const MAX_LOADER_TIMEOUT = 1200; // cap at 1.2s MAX so user never waits too long
+
+    const safetyTimer = setTimeout(dismissLoader, MAX_LOADER_TIMEOUT);
+
+    // 1. Fetch banners & preload top hero image (viewport appropriate)
+    const bannersTask = apiGetHeroBanners((data) => {
+      if (isMounted) { setBanners(data); setLoadingBanners(false); }
     })
       .then(async (data) => {
         if (!isMounted) return;
         setBanners(data);
         setLoadingBanners(false);
-        // Preload the first active banner image for a crisp, instant hero reveal
-        if (data.length > 0) {
-          const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-          const initialImg = isMobile ? (data[0].mobileImageUrl || data[0].desktopImageUrl) : data[0].desktopImageUrl;
-          if (initialImg) {
-            await Promise.race([
-              preloadImage(initialImg),
-              new Promise((r) => setTimeout(r, 1200)), // Don't hold screen more than 1.2s for image
-            ]);
-          }
+
+        const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+        const initialImg = data.length > 0
+          ? (isMobile ? (data[0].mobileImageUrl || data[0].desktopImageUrl) : data[0].desktopImageUrl)
+          : "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=85";
+
+        if (initialImg) {
+          await preloadImage(initialImg);
         }
       })
       .catch(() => {
         if (isMounted) setLoadingBanners(false);
       });
 
-    // 2. Fetch categories
-    const categoriesPromise = apiGetCategories((data) => {
-      if (isMounted) setCategories(data);
+    // 2. Fetch categories & preload top category images
+    const categoriesTask = apiGetCategories((data) => {
+      if (isMounted) { setCategories(data); setLoadingCategories(false); }
     })
-      .then((data) => {
+      .then(async (data) => {
         if (!isMounted) return;
         setCategories(data);
         setLoadingCategories(false);
+
+        // Preload visible categories
+        await Promise.all(
+          data.slice(0, 8).map((c) => {
+            if (c.image) {
+              markCategoryImageLoaded(c.image);
+              return preloadImage(c.image);
+            }
+            return Promise.resolve(true);
+          })
+        );
       })
       .catch(() => {
         if (isMounted) setLoadingCategories(false);
       });
 
-    // 3. Fetch featured products
-    const productsPromise = apiGetProducts({ featured: "true", status: "Published" }, (r) => {
-      if (isMounted) setFeatured(r.products);
+    // 3. Concurrently fetch products & newly added in background without holding loader
+    apiGetProducts({ featured: "true", status: "Published" }, (r) => {
+      if (isMounted) { setFeatured(r.products); setLoadingProducts(false); }
     })
       .then((r) => {
         if (!isMounted) return;
         setFeatured(r.products);
         setLoadingProducts(false);
+        r.products.forEach((p) => {
+          if (p.images?.[0]) {
+            markProductImageLoaded(p.images[0]);
+            preloadImage(p.images[0]);
+          }
+        });
       })
       .catch(() => {
         if (isMounted) setLoadingProducts(false);
       });
 
-    // 4. Non-blocking newly added items
     apiGetNewlyAddeds((data) => {
       if (isMounted) setNewlyAddeds(data);
     })
@@ -145,19 +243,22 @@ export default function Home() {
       })
       .catch(() => {});
 
-    // When all critical above-the-fold content is resolved, dismiss the loader
-    Promise.allSettled([bannersPromise, categoriesPromise, productsPromise]).then(() => {
-      if (isMounted) {
-        clearTimeout(safetyTimer);
-        setInitialLoading(false);
+    // As soon as hero banner & top categories are ready, dismiss loader smoothly
+    Promise.allSettled([bannersTask, categoriesTask]).then(async () => {
+      if (!isMounted) return;
+      const elapsed = Date.now() - startTime;
+      if (elapsed < MIN_LOADER_TIME) {
+        await new Promise((r) => setTimeout(r, MIN_LOADER_TIME - elapsed));
       }
+      clearTimeout(safetyTimer);
+      dismissLoader();
     });
 
     return () => {
       isMounted = false;
       clearTimeout(safetyTimer);
     };
-  }, []);
+  }, [isFirstVisit]);
 
   return (
     <div>
@@ -173,7 +274,7 @@ export default function Home() {
           {features.map((f, i) => (
             <div
               key={f.title}
-              className={`flex items-start gap-4 px-8 py-8 transition-colors hover:bg-copper-50/50 animate-fade-up stagger-${i + 1}`}
+              className={`flex items-start gap-4 px-8 py-8 transition-colors hover:bg-copper-50/50 reveal reveal-delay-${i + 1}`}
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-copper-50 text-copper-600">
                 <f.icon className="h-5 w-5" />
@@ -191,7 +292,7 @@ export default function Home() {
       <section className="bg-white border-y border-charcoal-950/6">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
           {/* Section heading */}
-          <div className="mb-12 text-center">
+          <div className="mb-12 text-center reveal">
             <h2 className="font-display text-4xl text-charcoal-950">
               Shop by{" "}
               <span className="font-bold underline decoration-copper-500 underline-offset-4">Categories</span>
@@ -204,7 +305,7 @@ export default function Home() {
             {loadingCategories
               ? Array.from({ length: 8 }).map((_, i) => <CategoryCardSkeleton key={i} />)
               : categories.map((c, i) => (
-                <div key={c._id} className={`animate-fade-up stagger-${Math.min(i + 1, 6)} flex justify-center`}>
+                <div key={c._id} className={`reveal reveal-delay-${(i % 8) + 1} flex justify-center`}>
                   <CategoryCard category={c} />
                 </div>
               ))
@@ -213,11 +314,10 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* ── NewlyAddeds / Newly Added Products ── */}
       {newlyAddeds.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-          <div className="mb-10 text-center">
+          <div className="mb-10 text-center reveal">
             <h2 className="font-display text-4xl text-charcoal-950">
               Newly Added <span className="font-bold underline decoration-copper-500 underline-offset-4">Products</span>
             </h2>
@@ -227,12 +327,13 @@ export default function Home() {
             {newlyAddeds.map((b, i) => {
               // If total is odd, the last item spans full width
               const isLastAndOdd = newlyAddeds.length % 2 !== 0 && i === newlyAddeds.length - 1;
+              const revealClass = isLastAndOdd ? "reveal-scale" : (i % 2 === 0 ? "reveal-left" : "reveal-right");
               
               return (
                 <Link
                   key={b._id}
                   to={`/products?category=${b.categorySlug}&newlyAdded=true`}
-                  className={`group relative block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-lg ${isLastAndOdd ? "md:col-span-2" : ""}`}
+                  className={`group relative block overflow-hidden rounded-2xl shadow-sm transition-all hover:shadow-lg ${revealClass} ${isLastAndOdd ? "md:col-span-2" : ""}`}
                 >
                   {/* Keep an aspect ratio to avoid layout shifts, but full width */}
                   <div className={`relative w-full overflow-hidden ${isLastAndOdd ? "aspect-[21/9]" : "aspect-[16/9]"}`}>
@@ -252,7 +353,7 @@ export default function Home() {
       {/* ── Featured Products ── */}
       <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
         <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
+          <div className="reveal-left">
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
               Our Products
             </span>
@@ -265,7 +366,7 @@ export default function Home() {
           </div>
           <Link
             to="/products"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-charcoal-950/15 px-5 py-2.5 text-sm font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
+            className="reveal-right inline-flex shrink-0 items-center gap-1.5 rounded-full border border-charcoal-950/15 px-5 py-2.5 text-sm font-medium text-charcoal-950 transition-all hover:border-copper-400 hover:text-copper-600"
           >
             View all products <ArrowUpRight className="h-4 w-4" />
           </Link>
@@ -284,7 +385,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 py-24 lg:px-10">
         <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
           {/* Image side */}
-          <div className="relative">
+          <div className="relative reveal-left">
             <div className="absolute -left-4 -top-4 h-72 w-72 rounded-full bg-copper-100/60 blur-3xl" />
             <div className="relative aspect-[5/6] overflow-hidden rounded-[2rem] shadow-[0_24px_64px_-12px_rgba(23,20,15,0.18)]">
               <img
@@ -303,7 +404,7 @@ export default function Home() {
           </div>
 
           {/* Text side */}
-          <div>
+          <div className="reveal-right">
             <span className="text-xs font-semibold uppercase tracking-widest text-copper-600">
               Why Next Steel Innovation
             </span>
@@ -322,7 +423,7 @@ export default function Home() {
               {whyPoints.map((point, i) => (
                 <li
                   key={point}
-                  className={`flex items-start gap-3.5 animate-fade-up stagger-${i + 1}`}
+                  className={`flex items-start gap-3.5 reveal reveal-delay-${(i % 6) + 1}`}
                 >
                   <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-copper-100 text-copper-600">
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -332,7 +433,7 @@ export default function Home() {
               ))}
             </ul>
 
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-4 reveal reveal-delay-3">
               <Link to="/about">
                 <Button variant="outline">Our Story <ArrowRight className="ml-1 h-4 w-4" /></Button>
               </Link>
