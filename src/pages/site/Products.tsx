@@ -27,12 +27,15 @@ export default function Products() {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(query);
-    }, 500);
+    }, 250);
     return () => clearTimeout(handler);
   }, [query]);
 
   // Reload products when category or debounced query changes
   useEffect(() => {
+    // If filtering by a specific category, wait until categories list is populated
+    if (activeCategory !== "all" && categories.length === 0) return;
+
     let isMounted = true;
     setLoading(true);
     setError(null);
@@ -124,11 +127,13 @@ export default function Products() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products…"
+                aria-label="Search products"
                 className="w-full rounded-full border border-charcoal-950/15 bg-white py-2.5 pl-11 pr-4 text-sm outline-none transition-colors focus:border-copper-500 focus:ring-2 focus:ring-copper-500/15"
               />
               {query && (
                 <button
                   onClick={() => setQuery("")}
+                  aria-label="Clear search query"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-charcoal-950"
                 >
                   <X className="h-4 w-4" />

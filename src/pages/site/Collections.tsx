@@ -20,8 +20,12 @@ export default function Collections() {
       <section className="relative overflow-hidden bg-charcoal-950">
         <div className="pointer-events-none absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1600&q=80"
+            src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=75"
             alt="Organised kitchen with storage racks and shelves"
+            width={1200}
+            height={600}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950 via-charcoal-950/90 to-copper-900/30" />

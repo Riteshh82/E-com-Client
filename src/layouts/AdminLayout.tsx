@@ -14,6 +14,7 @@ import {
   Layers,
   Image,
 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "../lib/utils";
 
 const links = [
@@ -27,8 +28,21 @@ const links = [
 ];
 
 export function AdminLayout() {
-  const { isAuthenticated } = useAdminAuth();
+  const { isAuthenticated, isLoading } = useAdminAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-cream-50">
+        <div className="flex flex-col items-center gap-3 text-copper-600">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+            Verifying Admin Authorization...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;

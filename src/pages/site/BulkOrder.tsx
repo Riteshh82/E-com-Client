@@ -123,6 +123,10 @@ export default function BulkOrder() {
               <img
                 src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80"
                 alt="Kitchen storage products in bulk"
+                width={800}
+                height={600}
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             </div>

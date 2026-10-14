@@ -22,6 +22,21 @@ export function slugify(text: string) {
 }
 
 /**
+ * Cleans and formats product titles for display:
+ * - Fixes awkward spacing around brackets: e.g. "Rack ( 3-Shelf )" -> "Rack (3-Shelf)"
+ * - Collapses multiple spaces
+ * - Trims leading/trailing whitespace
+ */
+export function formatProductName(name: string): string {
+  if (!name) return "";
+  return name
+    .replace(/\s*\(\s*/g, " (")
+    .replace(/\s*\)\s*/g, ") ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
  * Generates a URL-safe, unique product slug.
  *
  * Priority:

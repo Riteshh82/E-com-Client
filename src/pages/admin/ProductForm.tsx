@@ -12,7 +12,7 @@ import {
   type ApiProduct,
   type ApiCategory,
 } from "../../api";
-import { generateProductSlug } from "../../lib/utils";
+import { generateProductSlug, formatProductName } from "../../lib/utils";
 import { useToast } from "../../context/ToastContext";
 
 export default function ProductForm() {
@@ -164,10 +164,13 @@ export default function ProductForm() {
     const applicationsRaw = String(fd.get("applications") ?? "");
     const finishesRaw = String(fd.get("finishes") ?? "");
 
+    const rawName = String(fd.get("name") ?? "").trim();
+    const cleanName = formatProductName(rawName);
+
     const payload: Partial<ApiProduct> = {
-      name: String(fd.get("name") ?? ""),
+      name: cleanName,
       slug: generateProductSlug(
-        String(fd.get("name") ?? ""),
+        cleanName,
         String(fd.get("productCode") ?? "").trim()
       ),
       category: String(fd.get("category") ?? ""),

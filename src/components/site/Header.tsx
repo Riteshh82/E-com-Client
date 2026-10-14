@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, Search, X, ArrowRight, Layers } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { cn, formatProductName } from "../../lib/utils";
 import { Button } from "../ui/Button";
 import { apiGetProducts, apiGetCategories, type ApiProduct, type ApiCategory } from "../../api";
 
@@ -116,7 +116,10 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
         {/* Logo */}
         <Link to="/" className="group flex items-center gap-2.5" aria-label="Next Steel Innovation home">
-          <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-12 w-16  object-cover transition-transform duration-300 group-hover:scale-105" />
+          <picture>
+            <source srcSet="/logo.webp" type="image/webp" />
+            <img src="/logo.png" alt="Next Steel Innovation Logo" width={64} height={48} className="h-12 w-16 object-cover transition-transform duration-300 group-hover:scale-105" />
+          </picture>
           <span className="font-display text-xl tracking-wide text-charcoal-950">NEXT STEEL INNOVATION</span>
         </Link>
 
@@ -149,10 +152,11 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products..."
+                aria-label="Search products"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-stone-400"
               />
               {query && (
-                <button onClick={() => setQuery("")} className="text-stone-400 hover:text-charcoal-950">
+                <button onClick={() => setQuery("")} aria-label="Clear search" className="text-stone-400 hover:text-charcoal-950">
                   <X className="h-3 w-3" />
                 </button>
               )}
@@ -228,10 +232,14 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
                             <img
                               src={p.images[0]}
                               alt={p.name}
+                              width={40}
+                              height={40}
+                              loading="lazy"
+                              decoding="async"
                               className="h-10 w-10 rounded-lg object-cover"
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-charcoal-950">{p.name}</p>
+                              <p className="truncate text-sm font-medium text-charcoal-950">{formatProductName(p.name)}</p>
                               <p className="text-xs text-stone-500">
                                 {p.category}
                                 {p.productCode && <span className="ml-2 font-mono text-[10px] text-stone-400">{p.productCode}</span>}
@@ -322,7 +330,10 @@ export function Header({ onMobileMenuChange }: HeaderProps) {
           {/* Drawer header */}
           <div className="flex items-center justify-between border-b border-charcoal-950/8 px-6 py-5">
             <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-9 w-9 rounded-full object-cover" />
+              <picture>
+                <source srcSet="/logo.webp" type="image/webp" />
+                <img src="/logo.png" alt="Next Steel Innovation Logo" width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
+              </picture>
               <span className="font-display text-lg text-charcoal-950">NEXT STEEL INNOVATION</span>
             </div>
             <button

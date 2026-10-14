@@ -44,6 +44,8 @@ export function CategoryCard({ category }: { category: ApiCategory }) {
           ref={imgCallbackRef}
           src={category.image}
           alt={category.name}
+          width={140}
+          height={140}
           loading="lazy"
           decoding="async"
           onLoad={() => {
@@ -247,6 +249,11 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
         <img
           src={activeUrl}
           alt={name}
+          width={600}
+          height={600}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           onLoad={() => markLoaded(activeUrl)}
           className={`h-full w-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${isMainLoaded ? "opacity-100" : "opacity-0"}`}
         />
@@ -326,6 +333,10 @@ function ThumbnailButton({
         ref={thumbRef}
         src={src}
         alt=""
+        width={80}
+        height={80}
+        loading="lazy"
+        decoding="async"
         onLoad={handleLoad}
         className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
       />

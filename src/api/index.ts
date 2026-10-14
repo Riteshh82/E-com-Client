@@ -148,6 +148,7 @@ function authHeaders(): Record<string, string> {
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
+    credentials: "include",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -156,9 +157,11 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
-    if (res.status === 401) {
+    if (res.status === 401 && !path.startsWith("/auth/login")) {
       localStorage.removeItem("nsi_admin_token");
-      window.location.href = "/admin/login";
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+        window.location.href = "/admin/login";
+      }
     }
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { message?: string }).message ?? res.statusText);
@@ -188,6 +191,7 @@ export async function apiUploadImage(
 
   const res = await fetch(`${BASE}/upload${qs}`, {
     method: "POST",
+    credentials: "include",
     headers: {
       ...authHeaders(),
     },
@@ -210,10 +214,20 @@ export async function apiUploadImage(
 export async function apiLogin(
   email: string,
   password: string
-): Promise<{ token: string; admin: { id: string; email: string } }> {
+): Promise<{ token: string; admin: { id: string; email: string; role?: string } }> {
   return apiFetch("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function apiGetMe(): Promise<{ admin: { id: string; email: string; role: string; lastLoginAt?: string } }> {
+  return apiFetch("/auth/me");
+}
+
+export async function apiLogout(): Promise<{ message: string }> {
+  return apiFetch("/auth/logout", {
+    method: "POST",
   });
 }
 
@@ -231,8 +245,38 @@ export async function apiDeleteProductImage(url: string): Promise<void> {
 
 // ── Smart Cache System ────────────────────────────────────────────────────────
 
+const SESSION_CACHE_PREFIX = "nsi_api_cache_";
 const apiCache = new Map<string, { data: any; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<any>>();
+
+// Helper to read cached payload from memory first, then sessionStorage
+function getCachedPayload<T>(key: string): { data: T; timestamp: number } | null {
+  if (apiCache.has(key)) {
+    return apiCache.get(key) as { data: T; timestamp: number };
+  }
+  if (typeof window !== "undefined") {
+    try {
+      const raw = sessionStorage.getItem(SESSION_CACHE_PREFIX + key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        apiCache.set(key, parsed);
+        return parsed;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+// Helper to save payload to both memory and sessionStorage
+function setCachedPayload(key: string, data: any, timestamp: number) {
+  const item = { data, timestamp };
+  apiCache.set(key, item);
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.setItem(SESSION_CACHE_PREFIX + key, JSON.stringify(item));
+    } catch {}
+  }
+}
 
 /**
  * Smart caching wrapper.
@@ -243,15 +287,15 @@ async function cachedFetch<T>(
   key: string,
   fetcher: () => Promise<T>,
   onRefresh?: (data: T) => void,
-  ttlMs = 2 * 60 * 1000 // 2 minutes TTL
+  ttlMs = 5 * 60 * 1000 // 5 minutes TTL
 ): Promise<T> {
-  const cached = apiCache.get(key);
+  const cached = getCachedPayload<T>(key);
   const now = Date.now();
 
   const doFetch = async () => {
     if (pendingRequests.has(key)) return pendingRequests.get(key)!;
     const promise = fetcher().then((data) => {
-      apiCache.set(key, { data, timestamp: Date.now() });
+      setCachedPayload(key, data, Date.now());
       pendingRequests.delete(key);
       return data;
     }).catch(err => {
@@ -264,13 +308,13 @@ async function cachedFetch<T>(
 
   if (cached) {
     if (now - cached.timestamp < ttlMs) {
-      return cached.data as T;
+      return cached.data;
     }
     // Stale: background refresh
     doFetch().then((newData) => {
       if (onRefresh) onRefresh(newData);
     }).catch(() => {});
-    return cached.data as T;
+    return cached.data;
   }
 
   return doFetch();
@@ -279,9 +323,25 @@ async function cachedFetch<T>(
 export function clearApiCache(prefix?: string) {
   if (!prefix) {
     apiCache.clear();
+    if (typeof window !== "undefined") {
+      try {
+        const keys = Object.keys(sessionStorage);
+        for (const k of keys) {
+          if (k.startsWith(SESSION_CACHE_PREFIX)) sessionStorage.removeItem(k);
+        }
+      } catch {}
+    }
   } else {
     for (const key of apiCache.keys()) {
       if (key.startsWith(prefix)) apiCache.delete(key);
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const keys = Object.keys(sessionStorage);
+        for (const k of keys) {
+          if (k.startsWith(SESSION_CACHE_PREFIX + prefix)) sessionStorage.removeItem(k);
+        }
+      } catch {}
     }
   }
 }

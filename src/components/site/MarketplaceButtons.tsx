@@ -6,19 +6,39 @@ const WHATSAPP_PHONE = import.meta.env.VITE_WHATSAPP_NUMBER || "919876543210";
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
 function AmazonIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return <img src="/amazon.png" alt="Amazon" className={`shrink-0 object-contain ${className}`} />;
+  return (
+    <picture>
+      <source srcSet="/amazon.webp" type="image/webp" />
+      <img src="/amazon.png" alt="Amazon" width={16} height={16} className={`shrink-0 object-contain ${className}`} loading="lazy" decoding="async" />
+    </picture>
+  );
 }
 
 function FlipkartIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return <img src="/flipkart.png" alt="Flipkart" className={`shrink-0 object-contain ${className}`} />;
+  return (
+    <picture>
+      <source srcSet="/flipkart.webp" type="image/webp" />
+      <img src="/flipkart.png" alt="Flipkart" width={16} height={16} className={`shrink-0 object-contain ${className}`} loading="lazy" decoding="async" />
+    </picture>
+  );
 }
 
 function MyntraIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return <img src="/myntra.png" alt="Myntra" className={`shrink-0 object-contain ${className}`} />;
+  return (
+    <picture>
+      <source srcSet="/myntra.webp" type="image/webp" />
+      <img src="/myntra.png" alt="Myntra" width={16} height={16} className={`shrink-0 object-contain ${className}`} loading="lazy" decoding="async" />
+    </picture>
+  );
 }
 
 function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return <img src="/whatsapp.png" alt="WhatsApp" className={`shrink-0 object-contain ${className}`} />;
+  return (
+    <picture>
+      <source srcSet="/whatsapp.webp" type="image/webp" />
+      <img src="/whatsapp.png" alt="WhatsApp" width={16} height={16} className={`shrink-0 object-contain ${className}`} loading="lazy" decoding="async" />
+    </picture>
+  );
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

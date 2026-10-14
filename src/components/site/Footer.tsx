@@ -88,7 +88,10 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2">
           <Link to="/" className="group inline-flex items-center gap-2.5">
-            <img src="/logo.png" alt="Next Steel Innovation Logo" className="h-10 w-16 object-cover transition-transform duration-300 group-hover:scale-105" />
+            <picture>
+              <source srcSet="/logo.webp" type="image/webp" />
+              <img src="/logo.png" alt="Next Steel Innovation Logo" width={64} height={40} className="h-10 w-16 object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
+            </picture>
             <span className="font-display text-2xl tracking-wide text-cream-50">NEXT STEEL INNOVATION</span>
           </Link>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-charcoal-400">
@@ -147,20 +150,42 @@ export function Footer() {
               </div>
 
               {col.title === "Company" && (
-                <div className="mt-auto pt-12">
-                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-4">Brand Partner</h4>
-                  <div className="flex items-center gap-4 h-[72px]">
-                    <img src="/ProGrade.png" alt="ProGrade" className="h-full w-auto rounded object-contain" />
-                    <img src="/SBS Store.png" alt="S-B-S Store" className="h-full w-auto rounded object-contain" />
+                <div className="mt-auto pt-10 sm:pt-12">
+                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-3 sm:mb-4">Brand Partner</h4>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <picture>
+                      <source srcSet="/ProGrade.webp" type="image/webp" />
+                      <img
+                        src="/ProGrade.png"
+                        alt="ProGrade"
+                        width={120}
+                        height={60}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-12 sm:h-16 w-auto max-w-[120px] rounded object-contain object-left"
+                      />
+                    </picture>
+                    <picture>
+                      <source srcSet="/SBS Store.webp" type="image/webp" />
+                      <img
+                        src="/SBS Store.png"
+                        alt="S-B-S Store"
+                        width={120}
+                        height={60}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-12 sm:h-16 w-auto max-w-[120px] rounded object-contain object-left"
+                      />
+                    </picture>
                   </div>
                 </div>
               )}
 
               {col.title === "For Businesses" && (
-                <div className="mt-auto pt-12">
-                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-4">Manufacturing Partner</h4>
-                  <div className="flex items-center h-[72px]">
-                    <span className="text-xl font-bold tracking-wide text-stone-500">Shiv Baba Steel</span>
+                <div className="mt-auto pt-10 sm:pt-12">
+                  <h4 className="font-display text-sm tracking-wider text-copper-400 mb-3 sm:mb-4">Manufacturing Partner</h4>
+                  <div className="flex items-center min-h-[48px] sm:min-h-[64px]">
+                    <span className="text-lg sm:text-xl font-bold tracking-wide text-stone-400 leading-snug">Shiv Baba Steel</span>
                   </div>
                 </div>
               )}

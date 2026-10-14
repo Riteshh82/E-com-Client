@@ -6,8 +6,8 @@ import { useAdminAuth } from "../../context/AdminAuthContext";
 export default function AdminLogin() {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@coppera.in");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,13 +16,12 @@ export default function AdminLogin() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    const ok = await login(email, password);
+    const res = await login(email, password);
     setLoading(false);
-    if (ok) {
+    if (res.success) {
       navigate("/admin");
     } else {
-      setError("Invalid credentials. Try admin@coppera.in / admin123");
+      setError(res.error || "Invalid email or password.");
     }
   };
 
@@ -52,7 +51,7 @@ export default function AdminLogin() {
           </p>
 
           <div className="mt-10 space-y-3">
-            {["Products & Categories", "Bulk Order Management", "Contact Messages", "Site Settings"].map((item) => (
+            {["Dashboard","Home Page", "Products & Categories", "Bulk Order Management", "Contact Messages"].map((item) => (
               <div key={item} className="flex items-center gap-3 text-sm text-stone-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-copper-400" />
                 {item}

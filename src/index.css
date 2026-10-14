@@ -219,6 +219,7 @@ body {
 .reveal-fade.in-view {
   opacity: 1;
   transform: translateY(0) translateX(0) scale(1);
+  will-change: auto;
 }
 
 /* Stagger transition delay helpers for scroll reveals */

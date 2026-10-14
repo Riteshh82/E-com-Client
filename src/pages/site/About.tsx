@@ -61,11 +61,19 @@ export default function About() {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src="/About_us.jpg"
-            alt="Kitchen storage and organisation products"
-            className="h-full w-full object-cover"
-          />
+          <picture>
+            <source srcSet="/About_us.webp" type="image/webp" />
+            <img
+              src="/About_us.jpg"
+              alt="Kitchen storage and organisation products"
+              width={1280}
+              height={800}
+              className="h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal-950/85 via-charcoal-950/70 to-copper-900/50" />
         </div>
         <div className="relative mx-auto max-w-5xl px-6 py-32 lg:px-10">

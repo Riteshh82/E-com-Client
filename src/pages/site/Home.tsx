@@ -165,8 +165,8 @@ export default function Home() {
 
     // --- VERY FIRST VISIT ONLY: Fast, focused above-the-fold image preloading ---
     const startTime = Date.now();
-    const MIN_LOADER_TIME = 350; // smooth minimum so there is no instant jarring flash
-    const MAX_LOADER_TIMEOUT = 1200; // cap at 1.2s MAX so user never waits too long
+    const MIN_LOADER_TIME = 200; // smooth minimum to avoid jarring flash
+    const MAX_LOADER_TIMEOUT = 750; // cap at 750ms so user gets to content almost immediately
 
     const safetyTimer = setTimeout(dismissLoader, MAX_LOADER_TIMEOUT);
 
@@ -340,6 +340,10 @@ export default function Home() {
                     <img 
                       src={b.imageUrl} 
                       alt="New product collection" 
+                      width={800}
+                      height={450}
+                      loading="lazy"
+                      decoding="async"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
@@ -389,8 +393,12 @@ export default function Home() {
             <div className="absolute -left-4 -top-4 h-72 w-72 rounded-full bg-copper-100/60 blur-3xl" />
             <div className="relative aspect-[5/6] overflow-hidden rounded-[2rem] shadow-[0_24px_64px_-12px_rgba(23,20,15,0.18)]">
               <img
-                src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=85"
+                src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80"
                 alt="Organised kitchen with racks and storage solutions"
+                width={800}
+                height={960}
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-charcoal-950/10 to-transparent" />

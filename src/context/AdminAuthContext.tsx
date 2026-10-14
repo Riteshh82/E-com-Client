@@ -1,45 +1,100 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { apiLogin } from "../api";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { apiLogin, apiGetMe, apiLogout } from "../api";
+
+interface AdminUser {
+  id: string;
+  email: string;
+  role: string;
+  lastLoginAt?: string;
+}
 
 interface AdminAuthContextValue {
   isAuthenticated: boolean;
+  isLoading: boolean;
+  admin: AdminUser | null;
   adminEmail: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  verifySession: () => Promise<boolean>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 
-const STORAGE_KEY = "coppera_admin_session";
-
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [adminEmail, setAdminEmail] = useState<string | null>(() => {
-    // Clear any stale old token key from before renaming
-    localStorage.removeItem("coppera_admin_token");
-    return localStorage.getItem(STORAGE_KEY);
-  });
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = async (email: string, password: string) => {
+  // Clean up legacy keys
+  useEffect(() => {
+    localStorage.removeItem("coppera_admin_token");
+    localStorage.removeItem("coppera_admin_session");
+  }, []);
+
+  // Server-side session verification on initialization
+  const verifySession = async (): Promise<boolean> => {
     try {
-      const { token } = await apiLogin(email, password);
-      localStorage.setItem("nsi_admin_token", token);
-      localStorage.setItem(STORAGE_KEY, email);
-      setAdminEmail(email);
-      return true;
-    } catch {
+      const data = await apiGetMe();
+      if (data?.admin) {
+        setAdmin(data.admin);
+        return true;
+      }
+      setAdmin(null);
       return false;
+    } catch {
+      setAdmin(null);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("nsi_admin_token");
-    localStorage.removeItem(STORAGE_KEY);
-    setAdminEmail(null);
+  useEffect(() => {
+    verifySession();
+  }, []);
+
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await apiLogin(email, password);
+      // Fallback local mirror for environments where cookies are restricted
+      if (res.token) {
+        localStorage.setItem("nsi_admin_token", res.token);
+      }
+      setAdmin({
+        id: res.admin.id,
+        email: res.admin.email,
+        role: res.admin.role || "admin",
+      });
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to log in" };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem("nsi_admin_token");
+      setAdmin(null);
+    }
   };
 
   return (
     <AdminAuthContext.Provider
-      value={{ isAuthenticated: !!adminEmail, adminEmail, login, logout }}
+      value={{
+        isAuthenticated: !!admin,
+        isLoading,
+        admin,
+        adminEmail: admin?.email ?? null,
+        login,
+        logout,
+        verifySession,
+      }}
     >
       {children}
     </AdminAuthContext.Provider>

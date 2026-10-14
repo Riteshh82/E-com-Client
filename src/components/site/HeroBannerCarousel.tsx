@@ -134,8 +134,13 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
           <div className="relative animate-fade-up stagger-2">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(23,20,15,0.22)]">
               <img
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1200&q=85"
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80"
                 alt="Organized modern kitchen with high grade steel racks"
+                width={800}
+                height={1000}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -191,6 +196,8 @@ export function HeroBannerCarousel({ banners, loading = false }: HeroBannerCarou
                 <img
                   src={banner.desktopImageUrl}
                   alt={banner.title || banner.name}
+                  width={banner.desktopMetadata?.width || 1920}
+                  height={banner.desktopMetadata?.height || 820}
                   loading={index === 0 ? "eager" : "lazy"}
                   decoding="async"
                   fetchPriority={index === 0 ? "high" : "auto"}

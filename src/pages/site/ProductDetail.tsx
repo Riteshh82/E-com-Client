@@ -6,6 +6,7 @@ import { Badge } from "../../components/ui/index";
 import { MarketplaceButtons } from "../../components/site/MarketplaceButtons";
 import { Button } from "../../components/ui/Button";
 import { ProductGrid, ProductGridSkeleton } from "../../components/site/ProductCard";
+import { formatProductName } from "../../lib/utils";
 import { ChevronRight, CheckCircle2, Package, ArrowRight } from "lucide-react";
 
 const specLabels: Record<string, string> = {
@@ -196,7 +197,7 @@ export default function ProductDetail() {
             {product.category}
           </Link>
           <ChevronRight className="h-3.5 w-3.5 text-stone-300" />
-          <span className="text-charcoal-950">{product.name}</span>
+          <span className="text-charcoal-950">{formatProductName(product.name)}</span>
         </div>
       </nav>
 
@@ -220,8 +221,8 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <h1 className="mt-4 font-display text-3xl leading-tight text-charcoal-950 sm:text-4xl">
-              {product.name}
+            <h1 className="mt-4 font-display text-3xl leading-tight text-charcoal-950 sm:text-4xl [text-wrap:balance]">
+              {formatProductName(product.name)}
             </h1>
 
             {/* Price & Product Code */}

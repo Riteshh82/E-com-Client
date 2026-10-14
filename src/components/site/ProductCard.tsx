@@ -6,6 +6,7 @@ import type { ApiProduct } from "../../api";
 import { MarketplaceButtons } from "./MarketplaceButtons";
 
 import { isProductImageLoaded, markProductImageLoaded } from "../../lib/imageCache";
+import { formatProductName } from "../../lib/utils";
 
 export function ProductCard({ product }: { product: ApiProduct }) {
   const imageSrc = product.images?.[0] || "";
@@ -37,6 +38,8 @@ export function ProductCard({ product }: { product: ApiProduct }) {
             ref={imgCallbackRef}
             src={imageSrc}
             alt={product.name}
+            width={400}
+            height={300}
             loading="lazy"
             decoding="async"
             onLoad={() => {
@@ -69,9 +72,9 @@ export function ProductCard({ product }: { product: ApiProduct }) {
       <div className="flex flex-1 flex-col p-3 sm:p-4 md:p-5">
 
         {/* Title area */}
-        <div className="min-h-[2.5rem] sm:min-h-[3rem]">
-          <h3 className="line-clamp-2 font-display text-sm sm:text-base md:text-[1.05rem] leading-snug text-charcoal-950 transition-colors group-hover:text-copper-600">
-            {product.name}
+        <div className="min-h-[2.75rem] sm:min-h-[3.25rem]">
+          <h3 className="line-clamp-2 font-display text-sm sm:text-base md:text-[1.02rem] font-medium leading-snug text-charcoal-950 transition-colors group-hover:text-copper-600 [text-wrap:balance]">
+            {formatProductName(product.name)}
           </h3>
         </div>
 
