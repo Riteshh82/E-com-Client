@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useAdminAuth } from "../../context/AdminAuthContext";
+import { ADMIN_ROUTES, isValidAdminMobile } from "../../config/adminRoute";
+import NotFound from "../site/NotFound";
 
 export default function AdminLogin() {
+  const { mobileNumber } = useParams<{ mobileNumber?: string }>();
   const { login } = useAdminAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -12,6 +15,11 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // If the URL segment does not match the configured client mobile number, return 404
+  if (!isValidAdminMobile(mobileNumber)) {
+    return <NotFound />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -19,7 +27,7 @@ export default function AdminLogin() {
     const res = await login(email, password);
     setLoading(false);
     if (res.success) {
-      navigate("/admin");
+      navigate(ADMIN_ROUTES.dashboard);
     } else {
       setError(res.error || "Invalid email or password.");
     }

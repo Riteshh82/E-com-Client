@@ -15,7 +15,7 @@ const Collections = lazy(() => import("./pages/site/Collections"));
 const About = lazy(() => import("./pages/site/About"));
 const BulkOrder = lazy(() => import("./pages/site/BulkOrder"));
 const Contact = lazy(() => import("./pages/site/Contact"));
-const NotFound = lazy(() => import("./pages/site/NotFound"));
+import NotFound from "./pages/site/NotFound";
 
 // Admin pages and heavy admin dependencies (Recharts, etc.) code-split
 const AdminLogin = lazy(() => import("./pages/admin/Login"));
@@ -45,19 +45,9 @@ export default function App() {
       <ScrollToTop />
       <Suspense fallback={<PageLoading />}>
         <Routes>
-          <Route element={<SiteLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:slug" element={<ProductDetail />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/bulk-orders" element={<BulkOrder />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* Custom Secured Admin Routes */}
+          <Route path="/admin/:mobileNumber/login" element={<AdminLogin />} />
+          <Route path="/admin/:mobileNumber" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="products" element={<ProductsAdmin />} />
             <Route path="products/new" element={<ProductForm />} />
@@ -67,6 +57,21 @@ export default function App() {
             <Route path="newlyadded" element={<NewlyAddedAdmin />} />
             <Route path="bulk-orders" element={<BulkOrdersAdmin />} />
             <Route path="messages" element={<MessagesAdmin />} />
+          </Route>
+
+          {/* Site Layout Pages */}
+          <Route element={<SiteLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:slug" element={<ProductDetail />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/bulk-orders" element={<BulkOrder />} />
+            <Route path="/contact" element={<Contact />} />
+            {/* Generic /admin routes and unmatched paths return 404 Page Not Found */}
+            <Route path="/admin" element={<NotFound />} />
+            <Route path="/admin/*" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Suspense>

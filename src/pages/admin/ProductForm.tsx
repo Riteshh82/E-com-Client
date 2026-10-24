@@ -14,6 +14,7 @@ import {
 } from "../../api";
 import { generateProductSlug, formatProductName } from "../../lib/utils";
 import { useToast } from "../../context/ToastContext";
+import { ADMIN_ROUTES } from "../../config/adminRoute";
 
 export default function ProductForm() {
   const { id } = useParams<{ id: string }>();
@@ -54,7 +55,7 @@ export default function ProductForm() {
     apiGetProducts({ limit: "200" })
       .then((r) => {
         const p = r.products.find((x) => x._id === id);
-        if (!p) { navigate("/admin/products"); return; }
+        if (!p) { navigate(ADMIN_ROUTES.products); return; }
         setExisting(p);
         setName(p.name);
         setMrp(p.mrp != null ? String(p.mrp) : p.price != null ? String(p.price) : "");
@@ -67,7 +68,7 @@ export default function ProductForm() {
         setPublished(p.status === "Published");
         setWhatsappOrder(p.whatsappOrder ?? true);
       })
-      .catch(() => navigate("/admin/products"))
+      .catch(() => navigate(ADMIN_ROUTES.products))
       .finally(() => setLoadingData(false));
   }, [id, isEdit, navigate]);
 
@@ -208,7 +209,7 @@ export default function ProductForm() {
         await apiCreateProduct(payload);
         showToast("Product created.");
       }
-      navigate("/admin/products");
+      navigate(ADMIN_ROUTES.products);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Save failed.";
       showToast(message);
@@ -488,7 +489,7 @@ export default function ProductForm() {
         </section>
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="ghost" onClick={() => navigate("/admin/products")}>
+          <Button type="button" variant="ghost" onClick={() => navigate(ADMIN_ROUTES.products)}>
             Cancel
           </Button>
           <Button type="submit" disabled={submitting}>

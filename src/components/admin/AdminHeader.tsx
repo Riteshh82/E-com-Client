@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bell, LogOut, Menu, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ADMIN_LOGIN_PATH } from "../../config/adminRoute";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 
 export function AdminHeader({ onMenuClick }: { onMenuClick?: () => void }) {
@@ -58,7 +59,7 @@ export function AdminHeader({ onMenuClick }: { onMenuClick?: () => void }) {
             <button
               onClick={() => {
                 logout();
-                navigate("/admin/login");
+                navigate(ADMIN_LOGIN_PATH);
               }}
               className="flex items-center gap-1 text-xs text-stone-500 hover:text-copper-600"
             >

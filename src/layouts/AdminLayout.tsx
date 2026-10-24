@@ -17,19 +17,29 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "../lib/utils";
 
+import { ADMIN_ROUTES, ADMIN_LOGIN_PATH, isValidAdminMobile } from "../config/adminRoute";
+import { useParams } from "react-router-dom";
+import NotFound from "../pages/site/NotFound";
+
 const links = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/hero-banners", label: "Hero Banners", icon: Layers },
-  { to: "/admin/products", label: "Products", icon: Package },
-  { to: "/admin/categories", label: "Categories", icon: FolderTree },
-  { to: "/admin/newlyadded", label: "Newly Added", icon: Image },
-  { to: "/admin/bulk-orders", label: "Bulk Orders", icon: ClipboardList },
-  { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
+  { to: ADMIN_ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: ADMIN_ROUTES.heroBanners, label: "Hero Banners", icon: Layers },
+  { to: ADMIN_ROUTES.products, label: "Products", icon: Package },
+  { to: ADMIN_ROUTES.categories, label: "Categories", icon: FolderTree },
+  { to: ADMIN_ROUTES.newlyAdded, label: "Newly Added", icon: Image },
+  { to: ADMIN_ROUTES.bulkOrders, label: "Bulk Orders", icon: ClipboardList },
+  { to: ADMIN_ROUTES.messages, label: "Contact Messages", icon: MessageSquare },
 ];
 
 export function AdminLayout() {
-  const { isAuthenticated, isLoading } = useAdminAuth();
+  const { mobileNumber } = useParams<{ mobileNumber?: string }>();
+  const { isAuthenticated, isLoading, admin } = useAdminAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // If the URL segment does not match the configured client mobile number, return 404
+  if (!isValidAdminMobile(mobileNumber)) {
+    return <NotFound />;
+  }
 
   if (isLoading) {
     return (
@@ -45,7 +55,12 @@ export function AdminLayout() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to={ADMIN_LOGIN_PATH} replace />;
+  }
+
+  // Ensure role is admin or superadmin
+  if (admin && admin.role !== "admin" && admin.role !== "superadmin") {
+    return <Navigate to="/" replace />;
   }
 
   return (

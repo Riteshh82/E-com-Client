@@ -19,6 +19,7 @@ import {
   Cell,
 } from "recharts";
 import { StatsCard } from "../../components/admin/StatsCard";
+import { ADMIN_ROUTES } from "../../config/adminRoute";
 import {
   apiGetProducts,
   apiGetBulkOrders,
@@ -370,7 +371,7 @@ export default function Dashboard() {
         <div className="rounded-2xl border border-charcoal-950/8 bg-white p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base text-charcoal-950">Recent Bulk Inquiries</h3>
-            <Link to="/admin/bulk-orders" className="flex items-center gap-1 text-xs text-copper-600 hover:text-copper-700">
+            <Link to={ADMIN_ROUTES.bulkOrders} className="flex items-center gap-1 text-xs text-copper-600 hover:text-copper-700">
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
@@ -396,7 +397,7 @@ export default function Dashboard() {
         <div className="rounded-2xl border border-charcoal-950/8 bg-white p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base text-charcoal-950">Recent Messages</h3>
-            <Link to="/admin/messages" className="flex items-center gap-1 text-xs text-copper-600 hover:text-copper-700">
+            <Link to={ADMIN_ROUTES.messages} className="flex items-center gap-1 text-xs text-copper-600 hover:text-copper-700">
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

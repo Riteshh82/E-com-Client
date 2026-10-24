@@ -6,6 +6,7 @@ import { Badge } from "../../components/ui/index";
 import { Button } from "../../components/ui/Button";
 import { ConfirmDialog, EmptyState } from "../../components/ui/Overlay";
 import { useToast } from "../../context/ToastContext";
+import { ADMIN_ROUTES } from "../../config/adminRoute";
 
 export default function ProductsAdmin() {
   const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -69,7 +70,7 @@ export default function ProductsAdmin() {
           <h1 className="font-display text-2xl text-charcoal-950">Products</h1>
           <p className="mt-1 text-sm text-stone-500">{products.length} products in catalog</p>
         </div>
-        <Link to="/admin/products/new">
+        <Link to={ADMIN_ROUTES.productNew}>
           <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4" /> Add Product
           </Button>
@@ -137,7 +138,7 @@ export default function ProductsAdmin() {
               title="No products found"
               description="Try adjusting your search or filters, or add a new product."
               action={
-                <Link to="/admin/products/new">
+                <Link to={ADMIN_ROUTES.productNew}>
                   <Button size="sm">
                     <Plus className="h-4 w-4" /> Add Product
                   </Button>
@@ -188,7 +189,7 @@ export default function ProductsAdmin() {
                           <Eye className="h-4 w-4" />
                         </Link>
                         <Link
-                          to={`/admin/products/${p._id}/edit`}
+                          to={ADMIN_ROUTES.productEdit(p._id)}
                           className="rounded-lg p-2 text-stone-500 hover:bg-beige-100 hover:text-charcoal-950"
                           aria-label="Edit"
                         >
@@ -265,7 +266,7 @@ export default function ProductsAdmin() {
                               <Eye className="h-4 w-4" />
                             </Link>
                             <Link
-                              to={`/admin/products/${p._id}/edit`}
+                              to={ADMIN_ROUTES.productEdit(p._id)}
                               className="rounded-lg p-2 text-stone-500 hover:bg-beige-100 hover:text-charcoal-950"
                               aria-label="Edit product"
                             >

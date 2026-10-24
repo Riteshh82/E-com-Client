@@ -146,6 +146,8 @@ function authHeaders(): Record<string, string> {
 
 // ── Core fetch wrapper ───────────────────────────────────────────────────────
 
+import { ADMIN_BASE_PATH, ADMIN_LOGIN_PATH } from "../config/adminRoute";
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     credentials: "include",
@@ -159,8 +161,12 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     if (res.status === 401 && !path.startsWith("/auth/login")) {
       localStorage.removeItem("nsi_admin_token");
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
-        window.location.href = "/admin/login";
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith(ADMIN_BASE_PATH) &&
+        window.location.pathname !== ADMIN_LOGIN_PATH
+      ) {
+        window.location.href = ADMIN_LOGIN_PATH;
       }
     }
     const body = await res.json().catch(() => ({}));
@@ -201,7 +207,7 @@ export async function apiUploadImage(
   if (!res.ok) {
     if (res.status === 401) {
       localStorage.removeItem("nsi_admin_token");
-      window.location.href = "/admin/login";
+      window.location.href = ADMIN_LOGIN_PATH;
     }
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message ?? res.statusText);

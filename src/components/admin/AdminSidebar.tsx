@@ -9,15 +9,16 @@ import {
   Layers,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { ADMIN_ROUTES } from "../../config/adminRoute";
 
 const links = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/hero-banners", label: "Hero Banners", icon: Layers },
-  { to: "/admin/products", label: "Products", icon: Package },
-  { to: "/admin/categories", label: "Categories", icon: FolderTree },
-  { to: "/admin/newlyadded", label: "Newly Added", icon: Image },
-  { to: "/admin/bulk-orders", label: "Bulk Orders", icon: ClipboardList },
-  { to: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
+  { to: ADMIN_ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: ADMIN_ROUTES.heroBanners, label: "Hero Banners", icon: Layers },
+  { to: ADMIN_ROUTES.products, label: "Products", icon: Package },
+  { to: ADMIN_ROUTES.categories, label: "Categories", icon: FolderTree },
+  { to: ADMIN_ROUTES.newlyAdded, label: "Newly Added", icon: Image },
+  { to: ADMIN_ROUTES.bulkOrders, label: "Bulk Orders", icon: ClipboardList },
+  { to: ADMIN_ROUTES.messages, label: "Contact Messages", icon: MessageSquare },
 ];
 
 export function AdminSidebar() {
