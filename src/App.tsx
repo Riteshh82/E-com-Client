@@ -4,6 +4,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { SiteLayout } from "./layouts/SiteLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { Loader2 } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 
 // Critical landing page kept eager for instant LCP
 import Home from "./pages/site/Home";
@@ -75,6 +76,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
+      <Analytics />
     </>
   );
 }
